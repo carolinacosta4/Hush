@@ -1,20 +1,31 @@
-import db from "./models/index.js";
+import { PubSub } from "graphql-subscriptions";
+import { GraphQLError } from "graphql";
 import mongoose from "mongoose";
-const User = db.User;
-const Tip = db.Tip;
-const sleepLogs = db.SleepLog;
-const MoodLog = db.MoodLog;
+import User from "../models/users.model.js";
+import sleepLogs from "../models/sleeplogs.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import dbConfig from "./config/db.config.js";
+import dbConfig from "../config/db.config.js";
 
-export const resolvers = {
+const pubsub = new PubSub();
+
+const userResolver = {
   Query: {
+    me: async (_, {}, contextValue) => {
+      if (contextValue.loggedIn) {
+        let user = await User.findById(contextValue.user.id);
+        return user;
+      } else {
+        throw new GraphQLError("Please login again", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+    },
     listUsers: async () => await User.find(),
-    tips: async () => await Tip.find(),
-    listUsersMoodLogs: async (_, { idUser }) => {
-      return await MoodLog.find({ userId: idUser });
-    }  },
+  },
   Mutation: {
     createUser: async (_, { input }) => {
       if (Object.values(input).length == 0)
@@ -58,20 +69,29 @@ export const resolvers = {
         userID: user._id,
       };
     },
-    updateUser: async (_, { id, input }, { loggedUserId }) => {
+    updateUser: async (_, { id, input }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
       const user = await User.findById(id);
       if (!user) throw new Error("User not found.");
-
-      // if (id != loggedUserId)
-      //   throw new Error("You don't have permission to edit this user.");
 
       if (Object.values(input).length == 0)
         throw new Error("You need to provide the body with the request.");
 
       if (!input.username && !input.email && !input.password)
         throw new Error("Fields missing");
+
+      if (contextValue.user.id != id)
+        throw new Error("You can only update your own account.");
 
       if (input.password && input.oldPassword) {
         const isMatch = bcrypt.compareSync(input.oldPassword, user.password);
@@ -91,19 +111,33 @@ export const resolvers = {
 
       return updatedUser;
     },
-    removeUser: async (_, { id }) => {
+    removeUser: async (_, { id }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
       const user = await User.findById(id);
       if (!user) throw new Error("User not found.");
 
-      // if (id != req.loggedUserId)
-      //   throw new Error("You don't have permission to delete this user.");
+      if (contextValue.user.id != id)
+        throw new Error("You can only update your own account.");
 
       await User.findByIdAndDelete(id);
 
       return "User deleted successfully.";
     },
+  },
+};
+
+const sleepLogsResolver = {
+  Mutation: {
     listUserSleepLogs: async (_, { id }) => {
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
@@ -112,7 +146,16 @@ export const resolvers = {
 
       return logs;
     },
-    createSleepLogs: async (_, { id, input }) => {
+    createSleepLogs: async (_, { id, input }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
       if (Object.values(input).length == 0)
         throw new Error("You need to provide the body with the request.");
 
@@ -125,7 +168,7 @@ export const resolvers = {
         throw new Error("Fields missing");
 
       const newSleepLog = new sleepLogs({
-        userId: id,
+        userId: contextValue.user.id,
         date: input.date,
         bedtime: input.bedtime,
         wakeTime: input.wakeTime,
@@ -133,13 +176,29 @@ export const resolvers = {
       });
 
       const savedSleepLog = await newSleepLog.save();
+
+      pubsub.publish("NEW_SLEEP_LOG_ADDED", {
+        newSleepLogAdded: savedSleepLog,
+      });
       return savedSleepLog;
     },
-    updateSleepLogs: async (_, { id, input }) => {
+    updateSleepLogs: async (_, { id, input }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
       const log = await sleepLogs.findById(id);
       if (!log) throw new Error("Log not found.");
+
+      if (log.userId != contextValue.user.id)
+        throw new Error("You can only update your own logs.");
 
       if (Object.values(input).length == 0)
         throw new Error("You need to provide the body with the request.");
@@ -162,123 +221,45 @@ export const resolvers = {
 
       const updatedLog = await sleepLogs.findById(id);
 
+      pubsub.publish("SLEEP_LOG_UPDATED", { sleepLogUpdated: updatedLog });
       return updatedLog;
     },
-    removeSleepLog: async (_, { id }) => {
+    removeSleepLog: async (_, { id }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
       const log = await sleepLogs.findById(id);
       if (!log) throw new Error("Log not found.");
 
+      if (log.userId != contextValue.user.id)
+        throw new Error("You can only delete your own logs.");
+
       await sleepLogs.findByIdAndDelete(id);
+      pubsub.publish("SLEEP_LOG_DELETED", { sleepLogDeleted: id });
 
       return "Log deleted successfully.";
     },
-    createTip: async (_, { input }) => {
-      if (Object.values(input).length == 0)
-        throw new Error("You need to provide the body with the request.");
-
-      if (!input.title || !input.description || !input.author)
-        throw new Error("Fields missing");
-
-      let today = new Date();
-
-      const newTip = new Tip({
-        title: input.title,
-        description: input.description,
-        author: input.author,
-        publishDate: today.toISOString(),
-      });
-
-      const tip = await newTip.save();
-      return tip;
+  },
+  Subscription: {
+    newSleepLogAdded: {
+      subscribe: () => pubsub.asyncIterableIterator(["NEW_SLEEP_LOG_ADDED"]),
     },
-    removeTip: async (_, { id }) => {
-      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
-
-      const tip = await Tip.findById(id);
-      if (!tip) throw new Error("Tip not found.");
-
-      await Tip.findByIdAndDelete(id);
-
-      return "Tip deleted successfully.";
+    sleepLogUpdated: {
+      subscribe: () => pubsub.asyncIterableIterator(["SLEEP_LOG_UPDATED"]),
     },
-    updateTip: async (_, { id, input }) => {
-      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
-
-      const tip = await Tip.findById(id);
-      if (!tip) throw new Error("Tip not found.");
-
-      if (Object.values(input).length == 0)
-        throw new Error("You need to provide the body with the request.");
-
-      if (!input.title && !input.description && !input.author)
-        throw new Error("Fields missing");
-
-      let t = new Date();
-      let today = t.toISOString();
-
-      await Tip.findByIdAndUpdate(id, {
-        title: input.title != null ? input.title : tip.title,
-        description:
-          input.description != null ? input.description : tip.description,
-        author: input.author != null ? input.author : tip.author,
-        publishDate: today,
-      });
-
-      const updatedTip = await Tip.findById(id);
-
-      return updatedTip;
-    },
-    createMoodLog: async (_, { input }) => {
-      if (Object.values(input).length == 0)
-        throw new Error("You need to provide the body with the request.");
-
-      if (!input.userId || !input.mood) throw new Error("Fields missing");
-
-      let t = new Date();
-      let today = t.toISOString();
-
-      const newLog = new MoodLog({
-        userId: input.userId,
-        date: today,
-        mood: input.mood,
-        notes: input.notes,
-      });
-
-      const log = await newLog.save();
-      return log;
-    },
-    updateMoodLog: async (_, { id, input }) => {
-      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
-
-      const log = await MoodLog.findById(id);
-      if (!log) throw new Error("MoodLog not found.");
-
-      if (Object.values(input).length == 0)
-        throw new Error("You need to provide the body with the request.");
-
-      if (!input.mood && !input.date && !input.notes) throw new Error("Fields missing");
-
-      await MoodLog.findByIdAndUpdate(id, {
-        date: input.date != null ? input.date : log.date,
-        mood: input.mood != null ? input.mood : log.mood,
-        notes: input.notes != null ? input.notes : log.notes,
-      });
-
-      const updatedLog = await MoodLog.findById(id);
-
-      return updatedLog;
-    },
-    removeMoodLog: async (_, { id }) => {
-      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
-
-      const log = await MoodLog.findById(id);
-      if (!log) throw new Error("MoodLog not found.");
-
-      await MoodLog.findByIdAndDelete(id);
-
-      return "MoodLog deleted successfully.";
+    sleepLogDeleted: {
+      subscribe: () => pubsub.asyncIterableIterator(["SLEEP_LOG_DELETED"]),
     },
   },
 };
+
+import { mergeResolvers } from "@graphql-tools/merge";
+export const resolvers = mergeResolvers([userResolver, sleepLogsResolver]);

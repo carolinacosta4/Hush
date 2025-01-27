@@ -45,65 +45,10 @@ export const typeDefs = `
         username: String!
         password: String!
       }
-
-      type Tip {
-        _id: ID!
-        title: String!
-        description: String!
-        author: String!
-        publishDate: String
-      }
   
-      input TipCreationInput{
-        title: String!
-        description: String!
-        author: String!
-        publishDate: String
-      }
-
-      input TipEditInput{
-        title: String
-        description: String
-        author: String
-      }
-
-      enum Moods {
-        Happy
-        Sad
-        Excited
-        Tired
-        Stressed
-        Calm
-        Motivated
-        Relaxed
-        Neutral
-      }
-      
-      type MoodLog {
-        _id: ID!
-        userId: ID!
-        date: String!
-        mood: Moods!
-        notes: String
-      }
-
-      input MoodLogInput {
-        _id: ID
-        userId: ID!
-        mood: Moods!
-        notes: String,
-      }
-
-      input MoodLogEditInput {
-        date: String
-        mood: Moods
-        notes: String,
-      }
-
       type Query {
+        me: User
         listUsers: [User]
-        tips: [Tip]
-        listUsersMoodLogs(idUser: String!): [MoodLog]
       }
 
       type LoginResponse {
@@ -120,13 +65,11 @@ export const typeDefs = `
         createSleepLogs(id: ID!, input: SleepLogsCreateInput): SleepLog
         updateSleepLogs(id: ID!, input: SleepLogsEditInput): SleepLog
         removeSleepLog(id: ID!): String
-        createTip(input: TipCreationInput!): Tip
-        removeTip(id: ID!): String
-        updateTip(id: ID!, input: TipEditInput!): Tip
-        createMoodLog(input: MoodLogInput!): MoodLog
-        removeMoodLog(id: ID!): String
-        updateMoodLog(id: ID!, input: MoodLogEditInput!): MoodLog
-    }
-`;
+      }
 
-// MoodLog: Registros de humor diário (data, tipo de humor, observações)
+      type Subscription {
+        newSleepLogAdded: SleepLog
+        sleepLogUpdated: SleepLog
+        sleepLogDeleted: String
+      }
+`;
