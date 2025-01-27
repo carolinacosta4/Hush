@@ -1,7 +1,9 @@
 import db from "./models/index.js";
 import mongoose from "mongoose";
 const User = db.User;
+const Tip = db.Tip;
 const sleepLogs = db.SleepLog;
+const MoodLog = db.MoodLog;
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dbConfig from "./config/db.config.js";
@@ -9,7 +11,10 @@ import dbConfig from "./config/db.config.js";
 export const resolvers = {
   Query: {
     listUsers: async () => await User.find(),
-  },
+    tips: async () => await Tip.find(),
+    listUsersMoodLogs: async (_, { idUser }) => {
+      return await MoodLog.find({ userId: idUser });
+    }  },
   Mutation: {
     createUser: async (_, { input }) => {
       if (Object.values(input).length == 0)
@@ -168,6 +173,112 @@ export const resolvers = {
       await sleepLogs.findByIdAndDelete(id);
 
       return "Log deleted successfully.";
+    },
+    createTip: async (_, { input }) => {
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.title || !input.description || !input.author)
+        throw new Error("Fields missing");
+
+      let today = new Date();
+
+      const newTip = new Tip({
+        title: input.title,
+        description: input.description,
+        author: input.author,
+        publishDate: today.toISOString(),
+      });
+
+      const tip = await newTip.save();
+      return tip;
+    },
+    removeTip: async (_, { id }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const tip = await Tip.findById(id);
+      if (!tip) throw new Error("Tip not found.");
+
+      await Tip.findByIdAndDelete(id);
+
+      return "Tip deleted successfully.";
+    },
+    updateTip: async (_, { id, input }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const tip = await Tip.findById(id);
+      if (!tip) throw new Error("Tip not found.");
+
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.title && !input.description && !input.author)
+        throw new Error("Fields missing");
+
+      let t = new Date();
+      let today = t.toISOString();
+
+      await Tip.findByIdAndUpdate(id, {
+        title: input.title != null ? input.title : tip.title,
+        description:
+          input.description != null ? input.description : tip.description,
+        author: input.author != null ? input.author : tip.author,
+        publishDate: today,
+      });
+
+      const updatedTip = await Tip.findById(id);
+
+      return updatedTip;
+    },
+    createMoodLog: async (_, { input }) => {
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.userId || !input.mood) throw new Error("Fields missing");
+
+      let t = new Date();
+      let today = t.toISOString();
+
+      const newLog = new MoodLog({
+        userId: input.userId,
+        date: today,
+        mood: input.mood,
+        notes: input.notes,
+      });
+
+      const log = await newLog.save();
+      return log;
+    },
+    updateMoodLog: async (_, { id, input }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const log = await MoodLog.findById(id);
+      if (!log) throw new Error("MoodLog not found.");
+
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.mood && !input.date && !input.notes) throw new Error("Fields missing");
+
+      await MoodLog.findByIdAndUpdate(id, {
+        date: input.date != null ? input.date : log.date,
+        mood: input.mood != null ? input.mood : log.mood,
+        notes: input.notes != null ? input.notes : log.notes,
+      });
+
+      const updatedLog = await MoodLog.findById(id);
+
+      return updatedLog;
+    },
+    removeMoodLog: async (_, { id }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const log = await MoodLog.findById(id);
+      if (!log) throw new Error("MoodLog not found.");
+
+      await MoodLog.findByIdAndDelete(id);
+
+      return "MoodLog deleted successfully.";
     },
   },
 };

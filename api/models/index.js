@@ -2,11 +2,15 @@ import mongoose from "mongoose";
 import dbConfig from "../config/db.config.js";
 import User from "./users.model.js";
 import SleepLog from "./sleeplogs.model.js";
+import Tip from "./tips.model.js";
+import MoodLog from "./moodlogs.model.js";
 
 const db = {};
 db.mongoose = mongoose;
 db.User = User;
 db.SleepLog = SleepLog;
+db.Tip = Tip;
+db.MoodLog = MoodLog;
 
 (async () => {
   try {
