@@ -47,6 +47,7 @@ export const typeDefs = `
       }
   
       type Query {
+        me: User
         listUsers: [User]
       }
 
@@ -64,5 +65,11 @@ export const typeDefs = `
         createSleepLogs(id: ID!, input: SleepLogsCreateInput): SleepLog
         updateSleepLogs(id: ID!, input: SleepLogsEditInput): SleepLog
         removeSleepLog(id: ID!): String
-    }
+      }
+
+      type Subscription {
+        newSleepLogAdded: SleepLog
+        sleepLogUpdated: SleepLog
+        sleepLogDeleted: String
+      }
 `;
