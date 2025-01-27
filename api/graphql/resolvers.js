@@ -2,7 +2,9 @@ import { PubSub } from "graphql-subscriptions";
 import { GraphQLError } from "graphql";
 import mongoose from "mongoose";
 import User from "../models/users.model.js";
+import Tip from "../models/tips.model.js";
 import sleepLogs from "../models/sleeplogs.model.js";
+import MoodLog from "../models/moodlogs.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dbConfig from "../config/db.config.js";
@@ -261,5 +263,208 @@ const sleepLogsResolver = {
   },
 };
 
+const tipsResolver = {
+  Query: {
+    listAllTips: async () => {
+      return await Tip.find();
+    },
+  },
+  Mutation: {
+    createTip: async (_, { input }) => {
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.title || !input.description || !input.author)
+        throw new Error("Fields missing");
+
+      let today = new Date();
+
+      const newTip = new Tip({
+        title: input.title,
+        description: input.description,
+        author: input.author,
+        publishDate: today.toISOString(),
+      });
+
+      const tip = await newTip.save();
+
+      pubsub.publish("NEW_TIP_ADDED", {
+        newTipAdded: tip,
+      });
+
+      return tip;
+    },
+    removeTip: async (_, { id }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const tip = await Tip.findById(id);
+      if (!tip) throw new Error("Tip not found.");
+
+      await Tip.findByIdAndDelete(id);
+      pubsub.publish("TIP_DELETED", { tipDeleted: id });
+
+      return "Tip deleted successfully.";
+    },
+    updateTip: async (_, { id, input }) => {
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const tip = await Tip.findById(id);
+      if (!tip) throw new Error("Tip not found.");
+
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.title && !input.description && !input.author)
+        throw new Error("Fields missing");
+
+      let t = new Date();
+      let today = t.toISOString();
+
+      await Tip.findByIdAndUpdate(id, {
+        title: input.title != null ? input.title : tip.title,
+        description:
+          input.description != null ? input.description : tip.description,
+        author: input.author != null ? input.author : tip.author,
+        publishDate: today,
+      });
+
+      const updatedTip = await Tip.findById(id);
+
+      pubsub.publish("TIP_UPDATED", { tipUpdated: updatedTip });
+
+      return updatedTip;
+    },
+  },
+  Subscription: {
+    newTipAdded: {
+      subscribe: () => pubsub.asyncIterableIterator(["NEW_TIP_ADDED"]),
+    },
+    tipUpdated: {
+      subscribe: () => pubsub.asyncIterableIterator(["TIP_UPDATED"]),
+    },
+    tipDeleted: {
+      subscribe: () => pubsub.asyncIterableIterator(["TIP_DELETED"]),
+    },
+  },
+};
+
+const moodLogsResolver = {
+  Query: {
+    listUsersMoodLogs: async (_, { idUser }) => {
+      if (!mongoose.isValidObjectId(idUser)) {
+        throw new Error("Invalid ID.");
+      }
+
+      const logs = await MoodLog.find({ userId: idUser });
+
+      if (!logs || logs.length === 0) {
+        throw new Error("No mood logs found for the given user.");
+      }
+
+      return logs;
+    },
+  },
+  Mutation: {
+    createMoodLog: async (_, { id, input }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      let t = new Date();
+      let today = t.toISOString();
+
+      const newLog = new MoodLog({
+        userId: input.userId,
+        date: today,
+        mood: input.mood,
+        notes: input.notes,
+      });
+
+      const log = await newLog.save();
+
+      pubsub.publish("NEW_MOOD_LOG_ADDED", {
+        newMoodLogAdded: log,
+      });
+      return log;
+    },
+    updateMoodLog: async (_, { id, input }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const log = await MoodLog.findById(id);
+      if (!log) throw new Error("MoodLog not found.");
+
+      if (Object.values(input).length == 0)
+        throw new Error("You need to provide the body with the request.");
+
+      if (!input.mood && !input.date && !input.notes)
+        throw new Error("Fields missing");
+
+      await MoodLog.findByIdAndUpdate(id, {
+        date: input.date != null ? input.date : log.date,
+        mood: input.mood != null ? input.mood : log.mood,
+        notes: input.notes != null ? input.notes : log.notes,
+      });
+
+      const updatedLog = await MoodLog.findById(id);
+      pubsub.publish("MOOD_LOG_UPDATED", { sleepLogUpdated: updatedLog });
+
+      return updatedLog;
+    },
+    removeMoodLog: async (_, { id }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+
+      const log = await MoodLog.findById(id);
+      if (!log) throw new Error("MoodLog not found.");
+
+      await MoodLog.findByIdAndDelete(id);
+      pubsub.publish("MOOD_LOG_DELETED", { moodLogDeleted: id });
+
+      return "MoodLog deleted successfully.";
+    },
+  },
+  Subscription: {
+    newSleepLogAdded: {
+      subscribe: () => pubsub.asyncIterableIterator(["NEW_MOOD_LOG_ADDED"]),
+    },
+    sleepLogUpdated: {
+      subscribe: () => pubsub.asyncIterableIterator(["MOOD_LOG_UPDATED"]),
+    },
+    sleepLogDeleted: {
+      subscribe: () => pubsub.asyncIterableIterator(["MOOD_LOG_DELETED"]),
+    },
+  },
+};
+
 import { mergeResolvers } from "@graphql-tools/merge";
-export const resolvers = mergeResolvers([userResolver, sleepLogsResolver]);
+export const resolvers = mergeResolvers([
+  userResolver,
+  sleepLogsResolver,
+  tipsResolver,
+  moodLogsResolver,
+]);
