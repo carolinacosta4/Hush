@@ -27,6 +27,14 @@ const userResolver = {
       }
     },
     listUsers: async () => await User.find(),
+    findUserById: async (_, { id }) => {   
+      if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
+    
+      const user = await User.findById(id).exec();
+      if (!user) throw new Error("User not found.");
+    
+      return user;
+    },
   },
   Mutation: {
     createUser: async (_, { input }) => {
@@ -109,8 +117,6 @@ const userResolver = {
       });
 
       const updatedUser = await User.findById(id);
-      console.log(updatedUser);
-
       return updatedUser;
     },
     removeUser: async (_, { id }, contextValue) => {
@@ -146,7 +152,12 @@ const sleepLogsResolver = {
       const logs = await sleepLogs.find({ userId: id });
       if (!logs) throw new Error("Logs not found.");
 
-      return logs;
+      const logsWithFormattedDates = logs.map(log => ({
+        ...log.toObject(),
+        date: new Date(log.date).toISOString(),
+      }));
+    
+      return logsWithFormattedDates;
     },
     createSleepLogs: async (_, { id, input }, contextValue) => {
       if (!contextValue.user) {
@@ -163,7 +174,7 @@ const sleepLogsResolver = {
 
       if (
         !input.date ||
-        !input.bedtime ||
+        !input.bedTime ||
         !input.wakeTime ||
         !input.sleepQuality
       )
@@ -172,7 +183,7 @@ const sleepLogsResolver = {
       const newSleepLog = new sleepLogs({
         userId: contextValue.user.id,
         date: input.date,
-        bedtime: input.bedtime,
+        bedTime: input.bedTime,
         wakeTime: input.wakeTime,
         sleepQuality: input.sleepQuality,
       });
@@ -207,7 +218,7 @@ const sleepLogsResolver = {
 
       if (
         !input.date &&
-        !input.bedtime &&
+        !input.bedTime &&
         !input.wakeTime &&
         !input.sleepQuality
       )
@@ -215,7 +226,7 @@ const sleepLogsResolver = {
 
       await sleepLogs.findByIdAndUpdate(id, {
         date: input.date != null ? input.date : log.date,
-        bedtime: input.bedtime != null ? input.bedtime : log.bedtime,
+        bedTime: input.bedTime != null ? input.bedTime : log.bedTime,
         wakeTime: input.wakeTime != null ? input.wakeTime : log.wakeTime,
         sleepQuality:
           input.sleepQuality != null ? input.sleepQuality : log.sleepQuality,
@@ -361,7 +372,12 @@ const moodLogsResolver = {
         throw new Error("No mood logs found for the given user.");
       }
 
-      return logs;
+      const logsWithFormattedDates = logs.map(log => ({
+        ...log.toObject(),
+        date: new Date(log.date).toISOString(),
+      }));
+    
+      return logsWithFormattedDates;
     },
   },
   Mutation: {

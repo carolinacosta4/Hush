@@ -1,4 +1,4 @@
-import type { BlogCards, tableAction, MoodLog, SleepLog } from '@/types/dashboard/index';
+import type { BlogCards, tableAction } from '@/types/dashboard/index';
 
 import user1 from '@/assets/images/profile/user-1.jpg';
 import user2 from '@/assets/images/profile/user-2.jpg';
@@ -59,47 +59,4 @@ const tableActionData: tableAction[] = [
     }
 ];
 
-const MoodLogData: MoodLog[] = [
-    { date: '2025-01-20', mood: 'Alegre' },
-    { date: '2025-01-21', mood: 'Cansado' },
-    { date: '2025-01-22', mood: 'Alegre' },
-    { date: '2025-01-23', mood: 'Neutro' },
-    { date: '2025-01-24', mood: 'Irritado' },
-    { date: '2025-01-25', mood: 'Alegre' },
-    { date: '2025-01-26', mood: 'Neutro' }
-];
-
-const SleepLogData: SleepLog[] = [
-    { date: '2025-01-20', sleepTime: '23:00', wakeTime: '07:00', sleepQuality: 8 },
-    { date: '2025-01-21', sleepTime: '00:30', wakeTime: '06:45', sleepQuality: 6 },
-    { date: '2025-01-22', sleepTime: '22:45', wakeTime: '06:30', sleepQuality: 9 },
-    { date: '2025-01-23', sleepTime: '23:15', wakeTime: '07:15', sleepQuality: 7 },
-    { date: '2025-01-24', sleepTime: '00:00', wakeTime: '06:00', sleepQuality: 5 },
-    { date: '2025-01-25', sleepTime: '22:30', wakeTime: '06:45', sleepQuality: 8 },
-    { date: '2025-01-26', sleepTime: '23:00', wakeTime: '07:00', sleepQuality: 7 },
-    { date: '2025-02-01', sleepTime: '23:15', wakeTime: '07:15', sleepQuality: 8 },
-    { date: '2025-02-02', sleepTime: '22:30', wakeTime: '06:45', sleepQuality: 7 },
-    { date: '2025-02-03', sleepTime: '00:00', wakeTime: '06:30', sleepQuality: 6 },
-    { date: '2025-02-04', sleepTime: '23:00', wakeTime: '07:00', sleepQuality: 9 },
-    { date: '2025-02-05', sleepTime: '23:45', wakeTime: '07:15', sleepQuality: 8 },
-    { date: '2025-02-06', sleepTime: '22:45', wakeTime: '06:30', sleepQuality: 7 },
-    { date: '2025-02-07', sleepTime: '23:30', wakeTime: '07:00', sleepQuality: 6 }
-];
-
-const moodMapping: { [key: string]: number } = {
-    Alegre: 10,
-    Cansado: 3,
-    Neutro: 5,
-    Irritado: 0
-};
-
-const combinedData = MoodLogData.map((moodLog) => {
-    const sleepLog = SleepLogData.find((sleepLog) => sleepLog.date === moodLog.date);
-    return {
-        date: moodLog.date,
-        mood: moodMapping[moodLog.mood] ?? null,
-        sleepQuality: sleepLog ? sleepLog.sleepQuality : null
-    };
-});
-
-export { BlogCardData, tableActionData, SleepLogData, MoodLogData, combinedData };
+export { BlogCardData, tableActionData, };

@@ -4,13 +4,15 @@ export const typeDefs = `
         username: String!
         email: String!
         password: String!
+        sleepLogs: [SleepLog]
+        moodLogs: [MoodLog]
       }
 
       type SleepLog {
-        id: ID!
+        _id: ID!
         userId: ID!,
         date: String,
-        bedtime: String,
+        bedTime: String,
         wakeTime: String,
         sleepQuality: String
       }
@@ -29,14 +31,14 @@ export const typeDefs = `
 
       input SleepLogsCreateInput{
         date: String!
-        bedtime: String!
+        bedTime: String!
         wakeTime: String!
-        sleepQuality: String!
+        sleepQuality: Int!
       }
 
       input SleepLogsEditInput{
         date: String
-        bedtime: String
+        bedTime: String
         wakeTime: String
         sleepQuality: String
       }
@@ -105,6 +107,7 @@ export const typeDefs = `
         listUsers: [User]
         listAllTips: [Tip]
         listUsersMoodLogs(idUser: String!): [MoodLog]
+        findUserById(id: ID!): User
       }
 
       type LoginResponse {
@@ -118,7 +121,7 @@ export const typeDefs = `
         removeUser(id: ID!): String
         loginUser(input: UserLoginInput!): LoginResponse
         listUserSleepLogs(id: ID!): [SleepLog]
-        createSleepLogs(id: ID!, input: SleepLogsCreateInput): SleepLog
+        createSleepLogs(input: SleepLogsCreateInput): SleepLog
         updateSleepLogs(id: ID!, input: SleepLogsEditInput): SleepLog
         removeSleepLog(id: ID!): String
         createTip(input: TipCreationInput!): Tip
