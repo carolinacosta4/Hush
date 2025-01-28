@@ -22,7 +22,7 @@ type tableAction = {
 
 type SleepLog = {
     date: string;
-    sleepTime: string;
+    bedTime: string;
     wakeTime: string;
     sleepQuality: number;
 };

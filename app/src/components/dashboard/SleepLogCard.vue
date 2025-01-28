@@ -1,6 +1,7 @@
 <script lang="ts">
-import { SleepLogData } from '@/data/Dashboard';
 import { format, parseISO } from 'date-fns';
+import { useUsersStore } from "@/stores/users";
+import type { SleepLog } from '@/types/dashboard';
 
 export default {
     data() {
@@ -10,11 +11,27 @@ export default {
             sleepQuality: '',
             date: new Date(),
             selectedMonth: "Show All",
+            usersStore: useUsersStore(),
         };
     },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
+    },
+
     computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+
+        loggedUserInfo(): { sleepLogs: SleepLog[] } {
+            return this.usersStore.getUserLoggedInfo
+        },
+
         groupedSleepLog() {
-            const groups = SleepLogData.reduce((acc: { [key: string]: typeof SleepLogData }, log) => {
+            const groups = this.loggedUserInfo.sleepLogs.reduce((acc: { [key: string]: SleepLog[] }, log) => {
                 const month = format(parseISO(log.date), 'MMMM yyyy');
                 if (!acc[month]) {
                     acc[month] = [];
@@ -24,10 +41,30 @@ export default {
             }, {});
             return groups;
         },
+
         months() {
             return ["Show All", ...Object.keys(this.groupedSleepLog)];
         },
+
         areachartOptions() {
+            const annotations: { xaxis: { x: string; borderColor: string; label: { style: { color: string; background: string; }; text: string; }; }[] } = { xaxis: [] };
+            if (this.months.length === 2) {
+                const month = this.months[1];
+                annotations.xaxis = [
+                    {
+                        x: month,
+                        borderColor: '#805BB5',
+                        label: {
+                            style: {
+                                color: '',
+                                background: ''
+                            },
+                            text: ''
+                        }
+                    }
+                ];
+            }
+
             return {
                 chart: {
                     height: 305,
@@ -94,30 +131,37 @@ export default {
                 },
                 tooltip: {
                     theme: 'dark'
-                }
+                },
+                annotations: annotations
             };
         },
+
         areaChart() {
             const data = [];
             if (this.selectedMonth === "Show All") {
-                const monthlyData = SleepLogData.reduce((acc: { [key: string]: { total: number, count: number } }, log) => {
+                const monthlyData = this.loggedUserInfo.sleepLogs.reduce((acc: { [key: string]: { total: number, count: number } }, log) => {
                     const month = format(parseISO(log.date), 'MMMM yyyy');
                     if (!acc[month]) {
                         acc[month] = { total: 0, count: 0 };
                     }
-                    acc[month].total += log.sleepQuality;
+                    acc[month].total += Number(log.sleepQuality);
                     acc[month].count += 1;
                     return acc;
                 }, {});
 
                 for (const month in monthlyData) {
-                    data.push({ x: month, y: Math.floor(monthlyData[month].total / monthlyData[month].count) });
+                    const avgQuality = monthlyData[month].total / monthlyData[month].count;
+                    data.push({ x: month, y: Math.round(avgQuality) });
                 }
+
             } else {
                 this.groupedSleepLog[this.selectedMonth].forEach(log => {
-                    data.push({ x: log.date, y: log.sleepQuality });
+                    data.push({ x: format(parseISO(log.date), 'dd/MM/yyyy'), y: log.sleepQuality });
                 });
             }
+
+            data.sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
+
             return {
                 series: [
                     {
@@ -128,14 +172,6 @@ export default {
                 ]
             };
         }
-    },
-    methods: {
-        submitForm() {
-            console.log('Date:', this.date);
-            console.log('Sleep Time:', this.sleepTime);
-            console.log('Wake Time:', this.wakeTime);
-            console.log('Sleep Quality:', this.sleepQuality);
-        },
     },
 };
 </script>

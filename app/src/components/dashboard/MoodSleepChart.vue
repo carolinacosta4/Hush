@@ -1,12 +1,49 @@
 <script lang="ts">
-import { combinedData } from '@/data/Dashboard';
 import { format, parseISO } from 'date-fns';
+import { useUsersStore } from "@/stores/users";
+import type { MoodLog, SleepLog } from '@/types/dashboard';
+
+const moodMapping: { [key: string]: number } = {
+    Happy: 10,
+    Cansado: 3,
+    Neutro: 5,
+    Irritado: 0
+};
 
 export default {
     data() {
-        return {};
+        return {
+            usersStore: useUsersStore(),
+        };
     },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
+    },
+
     computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+
+        loggedUserInfo(): { moodLogs: MoodLog[]; sleepLogs: SleepLog[] } {
+            return this.usersStore.getUserLoggedInfo
+        },
+
+        combinedData() {
+            const combinedData = this.loggedUserInfo.moodLogs.map((moodLog) => {
+                const sleepLog = this.loggedUserInfo.sleepLogs.find((sleepLog) => format(parseISO(sleepLog.date), 'yyyy-MM-dd') === format(parseISO(moodLog.date), 'yyyy-MM-dd'))
+                return {
+                    date: moodLog.date,
+                    mood: moodMapping[moodLog.mood],
+                    sleepQuality: sleepLog ? sleepLog.sleepQuality : null
+                };
+            });
+            return combinedData;
+        },
+
         chartOptions() {
             return {
                 chart: {
@@ -28,7 +65,7 @@ export default {
                 },
                 xaxis: {
                     type: 'datetime',
-                    categories: combinedData.map(data => format(parseISO(data.date), 'yyyy-MM-dd'))
+                    categories: this.combinedData.map(data => format(parseISO(data.date), 'yyyy-MM-dd'))
                 },
                 yaxis: [
                     {
@@ -55,12 +92,12 @@ export default {
                 {
                     name: 'Mood',
                     type: 'line',
-                    data: combinedData.map(data => data.mood)
+                    data: this.combinedData.map(data => data.mood)
                 },
                 {
                     name: 'Sleep Quality',
                     type: 'line',
-                    data: combinedData.map(data => data.sleepQuality)
+                    data: this.combinedData.map(data => data.sleepQuality)
                 }
             ];
         }

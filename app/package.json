@@ -9,9 +9,13 @@
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
     },
     "dependencies": {
+        "@apollo/client": "3.10",
         "@iconify/vue": "^4.1.1",
+        "@vue/apollo-composable": "^4.2.1",
         "apexcharts": "3.45.2",
-        "date-fns": "^2.29.3",
+        "date-fns": "^2.30.0",
+        "graphql": "^16.10.0",
+        "graphql-ws": "^6.0.2",
         "lodash": "^4.17.21",
         "maska": "^1.5.0",
         "pinia": "^2.3.1",

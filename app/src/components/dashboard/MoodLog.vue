@@ -1,5 +1,37 @@
-<script setup lang="ts">
-import { MoodLogData, tableActionData } from '@/data/Dashboard';
+<script lang="ts">
+import { tableActionData } from '@/data/Dashboard';
+import { useUsersStore } from "@/stores/users";
+import type { MoodLog } from '@/types/dashboard/index';
+import { format } from 'date-fns';
+
+export default {
+    data() {
+        return {
+            usersStore: useUsersStore(),
+            tableActionData: tableActionData || [],
+        };
+    },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
+    },
+
+    computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+
+        loggedUserInfo(): { moodLogs: MoodLog[] } {
+            return this.usersStore.getUserLoggedInfo
+        },
+
+        formatDate() {
+            return (date: string) => format(new Date(date), 'MMMM dd, yyyy');
+        }
+    }
+};
 </script>
 
 <template>
@@ -19,12 +51,12 @@ import { MoodLogData, tableActionData } from '@/data/Dashboard';
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="item in MoodLogData" :key="item.date" class="month-item">
+                            <tr v-for="item in loggedUserInfo.moodLogs" :key="item.date" class="month-item">
                                 <td>
                                     <div class="d-flex align-center overflow-hidden">
                                         <div class="mx-4" style="min-width: 250px">
                                             <h6 class="text-body-1 font-weight-semibold truncate-2">
-                                                {{ item.date }}
+                                                {{ formatDate(item.date) }}
                                             </h6>
                                         </div>
                                     </div>

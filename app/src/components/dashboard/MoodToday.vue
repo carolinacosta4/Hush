@@ -1,6 +1,8 @@
 <script lang="ts">
 import { Icon } from '@iconify/vue';
-import { MoodLogData } from '@/data/Dashboard';
+import { useUsersStore } from "@/stores/users";
+import type { MoodLog, SleepLog } from '@/types/dashboard';
+import { format, parseISO } from 'date-fns';
 
 export default {
     components: {
@@ -14,14 +16,30 @@ export default {
                 date.setDate(date.getDate() - 1);
                 return date.toISOString().split('T')[0];
             })(),
+            usersStore: useUsersStore(),
         };
     },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
+    },
+
     computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+
+        loggedUserInfo(): { moodLogs: MoodLog[]; sleepLogs: SleepLog[] } {
+            return this.usersStore.getUserLoggedInfo
+        },
+
         todayMoodLog() {
-            return MoodLogData.find(log => log.date === this.today);
+            return this.loggedUserInfo.moodLogs.find(log => format(parseISO(log.date), 'yyyy-MM-dd') === this.today);
         },
         yesterdayMoodLog() {
-            return MoodLogData.find(log => log.date === this.yesterday);
+            return this.loggedUserInfo.moodLogs.find(log => format(parseISO(log.date), 'yyyy-MM-dd') === this.yesterday);
         }
     }
 };
