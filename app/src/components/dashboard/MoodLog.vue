@@ -40,7 +40,7 @@ export default {
     methods: {
         async handleAction(name: string, id: string, item: MoodLog) {
             if (name === 'Edit') {
-                this.currentLog = item
+                this.currentLog = { ...item }
                 this.dialog = true;
             } else if (name === 'Delete' && this.loggedUser) {
                 this.moodLogsStore.deleteLog(id);
@@ -49,6 +49,7 @@ export default {
         },
 
         saveEditedLog() {
+            
             if (this.currentLog) {
                 this.moodLogsStore.editLog(this.currentLog._id, {
                     date: this.currentLog.date,
@@ -56,6 +57,7 @@ export default {
                     notes: this.currentLog.notes,
                 });
                 this.dialog = false;
+                location.reload()
             }
         },
 
@@ -139,7 +141,7 @@ export default {
                 <v-col cols="12">
                     <v-label class="font-weight-semibold mb-1">Notes</v-label>
                     <v-text-field v-model="currentLog.notes" variant="outlined" density="compact" color="secondary"
-                        type="number" min="0" max="10" placeholder="Write about your feelings" />
+                        type="text" placeholder="Write about your feelings" />
                 </v-col>
             </v-card-text>
             <v-card-actions>

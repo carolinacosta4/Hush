@@ -113,6 +113,7 @@ export const typeDefs = `
         me: User
         listUsers: [User]
         listAllTips: [Tip]
+        findTip(id: ID!): Tip
         listUsersMoodLogs(idUser: String!): [MoodLog]
         findUserById(id: ID!): User
         getMoods: [String] 
