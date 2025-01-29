@@ -2,16 +2,11 @@ import type { TablerIconComponent } from 'vue-tabler-icons';
 
 /*Card types*/
 type BlogCards = {
-    avatar: string;
-    coveravatar: string;
-    read: string;
+    _id: string,
     title: string;
-    link: string;
-    category: string;
-    name: string;
-    view: string;
-    comments: string;
-    time: string;
+    description: string;
+    author: string;
+    publishDate: string;
 };
 
 /*Table Action*/

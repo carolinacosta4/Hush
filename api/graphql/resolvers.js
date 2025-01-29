@@ -349,6 +349,12 @@ const tipsResolver = {
     listAllTips: async () => {
       return await Tip.find();
     },
+    findTip: async (_, {id}) => {
+      if (!id) throw new Error("ID missing");
+      const tip = await Tip.findById(id)
+      if(!tip) throw new Error("Tip not found");
+      return tip
+    },
   },
   Mutation: {
     createTip: async (_, { input }) => {

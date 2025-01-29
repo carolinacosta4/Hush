@@ -13,9 +13,6 @@ export default {
     },
     methods: {
         submitForm() {
-            console.log('Mood:', this.mood);
-            console.log('Description:', this.date);
-    
             if (this.mood === '' || this.date === null) {
                 alert('Please fill all fields');
                 return;
@@ -25,7 +22,6 @@ export default {
                 mood: this.mood,
                 notes: this.notes,
             });
-            console.log('aqui');
             
         },
     },
