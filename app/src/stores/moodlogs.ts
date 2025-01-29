@@ -8,7 +8,6 @@ export const useMoodLogsStore = defineStore('moodLog', {
     actions: {
         async createLog(logInfo: { _id: string; date: string; mood: string; notes: string }) {
             await createMoodLog(logInfo);
-            console.log('created');
             
         },
 
