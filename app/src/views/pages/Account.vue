@@ -134,13 +134,16 @@ export default {
             <v-row>
                 <v-col cols="12" sm="12">
                     <div class="user-info">
-                        <v-row>
-                            <v-col cols="3" class="my-2" v-for="achievement in loggedUserInfo.achievements"
-                                :key="achievement._id"
+                        <v-row v-if="loggedUserInfo.achievements.length > 0">
+                            <v-col cols="3" class="my-2" v-for="achievement in loggedUserInfo.achievements" :key="achievement._id"
                                 style="display: flex; flex-direction: column; align-items: center;">
-                                <v-img :src="achievement.image" alt="Achievement" aspect-ratio="1" width="100"
-                                    height="100" />
+                                <v-img :src="achievement.image" alt="Achievement" aspect-ratio="1" width="100" height="100" />
                                 <p style="text-align: center;">{{ achievement.name }}</p>
+                            </v-col>
+                        </v-row>
+                        <v-row v-else>
+                            <v-col cols="12" class="my-2" style="text-align: center;">
+                                <p>No achievements yet.</p>
                             </v-col>
                         </v-row>
                     </div>
