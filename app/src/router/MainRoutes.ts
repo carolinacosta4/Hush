@@ -25,6 +25,11 @@ const MainRoutes = {
             name: 'Add Log',
             path: '/createLog',
             component: () => import('@/views/pages/CreateLog.vue')
+        },
+        {   
+            name: 'TipPage', 
+            path: 'tip/:id',
+            component: () => import('@/views/pages/TipPage.vue'),
         }
     ]
 };

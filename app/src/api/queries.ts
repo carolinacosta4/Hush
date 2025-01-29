@@ -233,6 +233,30 @@ const GET_MOOD_ENUM = gql`
     }
 `;
 
+export const LIST_ALL_TIPS = gql`
+    query listAllTips {
+        listAllTips {
+            _id
+            title
+            description
+            author
+            publishDate
+        }
+    }
+`;
+
+export const FIND_TIP = gql`
+    query findTip ($id: ID!) {
+        findTip(id: $id) {
+            _id
+            title
+            description
+            author
+            publishDate
+        }
+    }
+`;
+
 export const login = async (username: string, password: string) => {
     const { data } = await apolloClient.mutate({
         mutation: LOGIN_USER,
@@ -364,3 +388,18 @@ export const getMoodsValue = async () => {
     return list;
 };
 
+
+export const fetchAllTips = async () => {
+    const { data } = await apolloClient.query({
+        query: LIST_ALL_TIPS,
+    });
+    return data.listAllTips;
+};
+
+export const findTip = async (id: string) => {
+    const { data } = await apolloClient.query({
+        query: FIND_TIP,
+        variables: { id }
+    });
+    return data.findTip;
+};
