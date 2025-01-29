@@ -31,7 +31,7 @@ export default {
                 alert('Please fill all fields');
                 return;
             }
-            this.moodLogsStore.createLog({
+            await this.moodLogsStore.createLog({
                 date: this.date.toISOString(),
                 mood: this.mood,
                 notes: this.notes,
@@ -50,7 +50,10 @@ export default {
             this.mood = '';
             this.notes = '';
             this.date = new Date();
-            this.$router.push('/');
+            window.location.href = '/';
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
         },
     },
 
