@@ -23,12 +23,19 @@ export default {
             this.$router.push('/login');
         },
 
-        editProfile(){
+        editProfile() {
             console.log('Edit Profile');
         },
 
-        saveEdit(){
+        saveEdit() {
             console.log('Save edit Profile');
+        },
+
+        deleteUser() {
+            if (this.loggedUser) {
+                this.usersStore.deleteUser(this.loggedUser);
+                this.$router.push('/register');
+            }
         }
     },
 
@@ -54,7 +61,7 @@ export default {
                 <v-col cols="12" sm="4">
                     <v-avatar size="120" class="mx-auto">
                         <!-- <img :src="loggedUserInfo.profileImage" alt="Profile Image" /> -->
-                         <img src="https://cdn.vuetifyjs.com/images/john.jpg" alt="Profile Image" />
+                        <img src="https://cdn.vuetifyjs.com/images/john.jpg" alt="Profile Image" />
                     </v-avatar>
                 </v-col>
 
@@ -87,19 +94,22 @@ export default {
                         <v-row>
                             <v-col cols="12">
                                 <v-label class="font-weight-semibold mb-1">Username</v-label>
-                                <v-text-field variant="outlined" v-model="loggedUserInfo.username" density="compact" hide-details
-                                    color="secondary"></v-text-field>
+                                <v-text-field variant="outlined" v-model="loggedUserInfo.username" density="compact"
+                                    hide-details color="secondary"></v-text-field>
                             </v-col>
                             <v-col cols="12">
                                 <v-label class="font-weight-semibold mb-1">Email</v-label>
-                                <v-text-field variant="outlined" v-model="loggedUserInfo.email" density="compact" hide-details
-                                    color="secondary"></v-text-field>
+                                <v-text-field variant="outlined" v-model="loggedUserInfo.email" density="compact"
+                                    hide-details color="secondary"></v-text-field>
                             </v-col>
                         </v-row>
                     </div>
 
                     <v-btn class="mt-4" color="red" @click="saveEdit">
                         Save
+                    </v-btn>
+                    <v-btn class="mt-4" color="red" @click="deleteUser">
+                        Delete account
                     </v-btn>
                 </v-col>
             </v-row>

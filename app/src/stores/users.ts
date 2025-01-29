@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { login as loginUser, findUserById, listUserSleepLogs, listUsersMoodLogs } from '@/api/queries';
+import { login as loginUser, findUserById, listUserSleepLogs, listUsersMoodLogs, createUser, removeUser } from '@/api/queries';
 
 export const useUsersStore = defineStore('user', {
     state: () => ({
@@ -47,10 +47,16 @@ export const useUsersStore = defineStore('user', {
         },
 
         async register(newUser: { username: string; email: string; password: string }) {
-            this.token = '123';
-            this.loggedUser = newUser.username;
-            localStorage.setItem('authToken', this.token);
-            localStorage.setItem('user', this.loggedUser);
+            await createUser(newUser);
+            loginUser(newUser.username, newUser.password);
+        },
+
+        async deleteUser(id: string) {
+            await removeUser(id);
+            this.token = null;
+            this.loggedUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
         }
     }
 });

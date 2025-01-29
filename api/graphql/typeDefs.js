@@ -14,7 +14,7 @@ export const typeDefs = `
         date: String,
         bedTime: String,
         wakeTime: String,
-        sleepQuality: String
+        sleepQuality: Int
       }
     
       input UserCreateInput{
@@ -40,7 +40,7 @@ export const typeDefs = `
         date: String
         bedTime: String
         wakeTime: String
-        sleepQuality: String
+        sleepQuality: Int
       }
   
       input UserLoginInput{

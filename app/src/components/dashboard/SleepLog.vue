@@ -3,12 +3,16 @@ import { tableActionData } from '@/data/Dashboard';
 import { useUsersStore } from "@/stores/users";
 import type { SleepLog } from '@/types/dashboard';
 import { format } from 'date-fns';
+import { useSleepLogsStore } from '@/stores/sleeplogs';
 
 export default {
     data() {
         return {
             usersStore: useUsersStore(),
             tableActionData: tableActionData || [],
+            sleepLogsStore: useSleepLogsStore(),
+            dialog: false,
+            currentLog: {} as SleepLog,
         };
     },
 
@@ -30,7 +34,33 @@ export default {
         formatDate() {
             return (date: string) => format(new Date(date), 'MMMM dd, yyyy');
         }
-    }
+    },
+
+    methods: {
+        handleAction(name: string, id: string, item: SleepLog) {
+            if (name === 'Edit') {               
+                this.currentLog = item 
+                this.dialog = true;
+            } else if (name === 'Delete') {
+                this.sleepLogsStore.deleteLog(id);
+            }
+        },
+
+        saveEditedLog() {
+            if (this.currentLog) {
+                this.sleepLogsStore.editLog(this.currentLog._id, {
+                    bedTime: this.currentLog.bedTime,
+                    wakeTime: this.currentLog.wakeTime,
+                    sleepQuality: this.currentLog.sleepQuality,
+                });
+                this.dialog = false;
+            }
+        },
+
+        closeDialog() {
+            this.dialog = false;
+        }
+    },
 };
 </script>
 
@@ -83,7 +113,8 @@ export default {
                                         <v-menu activator="parent">
                                             <v-list elevation="10">
                                                 <v-list-item value="action" v-for="list in tableActionData"
-                                                    :key="list.listtitle" hide-details min-height="38">
+                                                    :key="list.listtitle" hide-details min-height="38"
+                                                    @click="handleAction(list.listtitle, item._id, item)">
                                                     <v-list-item-title>
                                                         <v-avatar size="20" class="mr-2">
                                                             <component :is="list.icon" stroke-width="2" size="20" />
@@ -102,4 +133,31 @@ export default {
             </perfect-scrollbar>
         </v-card-item>
     </v-card>
+
+    <v-dialog v-model="dialog" max-width="600px">
+        <v-card>
+            <v-card-title class="headline">Edit Sleep Log</v-card-title>
+            <v-card-text>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Sleep Time</v-label>
+                    <v-text-field v-model="currentLog.bedTime" variant="outlined" density="compact" color="secondary"
+                        placeholder="HH:mm" type="time" />
+                </v-col>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Wake Time</v-label>
+                    <v-text-field v-model="currentLog.wakeTime" variant="outlined" density="compact" color="secondary"
+                        placeholder="HH:mm" type="time" />
+                </v-col>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Sleep Quality</v-label>
+                    <v-text-field v-model="currentLog.sleepQuality" variant="outlined" density="compact" color="secondary"
+                        type="number" min="0" max="10" placeholder="Rate from 0 to 10" />
+                </v-col>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn @click="closeDialog">Cancel</v-btn>
+                <v-btn color="secondary" @click="saveEditedLog">Save</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>

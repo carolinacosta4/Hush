@@ -1,19 +1,29 @@
 <script lang="ts">
+import { useSleepLogsStore } from '@/stores/sleeplogs';
+
 export default {
     data() {
         return {
-            sleepTime: '',
+            bedTime: '',
             wakeTime: '',
-            sleepQuality: '',
+            sleepQuality: 0,
             date: new Date(),
+            sleepLogStore: useSleepLogsStore(),
         };
     },
+
     methods: {
         submitForm() {
-            console.log('Date:', this.date);
-            console.log('Sleep Time:', this.sleepTime);
-            console.log('Wake Time:', this.wakeTime);
-            console.log('Sleep Quality:', this.sleepQuality);
+            if (this.bedTime === '' || this.wakeTime === '' || this.sleepQuality === 0) {
+                alert('Please fill all fields');
+                return;
+            }
+            this.sleepLogStore.createLog({
+                date: this.date.toISOString(),
+                bedTime: this.bedTime,
+                wakeTime: this.wakeTime,
+                sleepQuality: this.sleepQuality,
+            });
         },
     },
 };
@@ -27,38 +37,18 @@ export default {
         </v-col>
         <v-col cols="12">
             <v-label class="font-weight-semibold mb-1">Sleep Time</v-label>
-            <v-text-field 
-                v-model="sleepTime" 
-                variant="outlined" 
-                density="compact" 
-                color="secondary" 
-                placeholder="HH:mm" 
-                type="time"
-            />
+            <v-text-field v-model="bedTime" variant="outlined" density="compact" color="secondary" placeholder="HH:mm"
+                type="time" />
         </v-col>
         <v-col cols="12">
             <v-label class="font-weight-semibold mb-1">Wake Time</v-label>
-            <v-text-field 
-                v-model="wakeTime" 
-                variant="outlined" 
-                density="compact" 
-                color="secondary" 
-                placeholder="HH:mm" 
-                type="time"
-            />
+            <v-text-field v-model="wakeTime" variant="outlined" density="compact" color="secondary" placeholder="HH:mm"
+                type="time" />
         </v-col>
         <v-col cols="12">
             <v-label class="font-weight-semibold mb-1">Sleep Quality</v-label>
-            <v-text-field 
-                v-model="sleepQuality" 
-                variant="outlined" 
-                density="compact" 
-                color="secondary" 
-                type="number" 
-                min="0" 
-                max="10" 
-                placeholder="Rate from 0 to 10"
-            />
+            <v-text-field v-model="sleepQuality" variant="outlined" density="compact" color="secondary" type="number"
+                min="0" max="10" placeholder="Rate from 0 to 10" />
         </v-col>
         <v-col cols="12" class="pt-0">
             <v-btn rounded="md" color="secondary" size="large" block flat type="submit">Create</v-btn>
