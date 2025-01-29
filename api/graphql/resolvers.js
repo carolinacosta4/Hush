@@ -192,6 +192,9 @@ const userResolver = {
       if (contextValue.user.id != id)
         throw new Error("You can only update your own account.");
 
+      await sleepLogs.deleteMany({ userId: id });
+      await MoodLog.deleteMany({ userId: id });
+
       await User.findByIdAndDelete(id);
 
       return "User deleted successfully.";
