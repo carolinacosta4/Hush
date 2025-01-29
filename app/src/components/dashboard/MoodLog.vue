@@ -136,11 +136,6 @@ export default {
                         variant="outlined" density="compact" hide-details color="secondary"></v-select>
                 </v-col>
                 <v-col cols="12">
-                    <v-label class="font-weight-semibold mb-1">Date</v-label>
-                    <v-date-picker v-model="currentLog.date" variant="outlined" density="compact"
-                        color="secondary"></v-date-picker>
-                </v-col>
-                <v-col cols="12">
                     <v-label class="font-weight-semibold mb-1">Notes</v-label>
                     <v-text-field v-model="currentLog.notes" variant="outlined" density="compact" color="secondary"
                         type="number" min="0" max="10" placeholder="Write about your feelings" />

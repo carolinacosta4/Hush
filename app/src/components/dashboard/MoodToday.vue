@@ -58,7 +58,7 @@ export default {
             </div>
             <h2 class="text-h2 mb-3"></h2>
             <div v-if="todayMoodLog" class="py-4 px-2 bg-dark rounded-lg shadow-md text-white">
-                <p class="text-20 text-light font-weight-bold mb-0">{{ todayMoodLog.mood }}</p>
+                <p class="text-20 text-secondary font-weight-bold mb-0">{{ todayMoodLog.mood }}</p>
                 <div v-if="yesterdayMoodLog">
                     <span
                         class="text-12 rounded-pill px-2 py-1 lh-normal text-muted light-chip border border-muted font-weight-medium">Yesterday
