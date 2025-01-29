@@ -1,16 +1,32 @@
 <script lang="ts">
+import { useMoodLogsStore } from '@/stores/moodlogs';
 export default {
+
     data() {
         return {
             mood: '',
             date: new Date(),
-            moodOptions: ['Alegre', 'Cansado', 'Irritado', 'Neutro'],
+            notes: '',
+            moodLogsStore: useMoodLogsStore(),
+            moodOptions: ["Happy", "Sad", "Excited", "Tired", "Stressed", "Calm", "Motivated", "Relaxed", "Neutral"]
         };
     },
     methods: {
         submitForm() {
             console.log('Mood:', this.mood);
             console.log('Description:', this.date);
+    
+            if (this.mood === '' || this.date === null) {
+                alert('Please fill all fields');
+                return;
+            }
+            this.moodLogsStore.createLog({
+                date: this.date,
+                mood: this.mood,
+                notes: this.notes,
+            });
+            console.log('aqui');
+            
         },
     },
 };
@@ -26,6 +42,10 @@ export default {
         <v-col cols="12">
             <v-label class="font-weight-semibold mb-1">Date</v-label>
             <v-date-picker v-model="date" variant="outlined" density="compact" color="secondary"></v-date-picker>
+        </v-col>
+        <v-col cols="12">
+            <v-label class="font-weight-semibold mb-1">Notes</v-label>
+            <v-text-field placeholder="Write about your feelings" v-model="notes"></v-text-field>
         </v-col>
         <v-col cols="12" class="pt-0">
             <v-btn rounded="md" color="secondary" size="large" block flat type="submit">Create</v-btn>

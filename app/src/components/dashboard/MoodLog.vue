@@ -3,12 +3,17 @@ import { tableActionData } from '@/data/Dashboard';
 import { useUsersStore } from "@/stores/users";
 import type { MoodLog } from '@/types/dashboard/index';
 import { format } from 'date-fns';
+import { useMoodLogsStore } from '@/stores/moodlogs';
 
 export default {
     data() {
         return {
             usersStore: useUsersStore(),
             tableActionData: tableActionData || [],
+            moodLogsStore: useMoodLogsStore(),
+            dialog: false,
+            currentLog: {} as MoodLog,
+            moodOptions: ["Happy", "Sad", "Excited", "Tired", "Stressed", "Calm", "Motivated", "Relaxed", "Neutral"]
         };
     },
 
@@ -30,7 +35,33 @@ export default {
         formatDate() {
             return (date: string) => format(new Date(date), 'MMMM dd, yyyy');
         }
-    }
+    },
+
+    methods: {
+        handleAction(name: string, id: string, item: MoodLog) {
+            if (name === 'Edit') {
+                this.currentLog = item
+                this.dialog = true;
+            } else if (name === 'Delete') {
+                this.moodLogsStore.deleteLog(id);
+            }
+        },
+
+        saveEditedLog() {
+            if (this.currentLog) {
+                this.moodLogsStore.editLog(this.currentLog._id, {
+                    date: this.currentLog.date,
+                    mood: this.currentLog.mood,
+                    notes: this.currentLog.notes,
+                });
+                this.dialog = false;
+            }
+        },
+
+        closeDialog() {
+            this.dialog = false;
+        }
+    },
 };
 </script>
 
@@ -73,13 +104,9 @@ export default {
                                         </v-avatar>
                                         <v-menu activator="parent">
                                             <v-list elevation="10">
-                                                <v-list-item
-                                                    value="action"
-                                                    v-for="list in tableActionData"
-                                                    :key="list.listtitle"
-                                                    hide-details
-                                                    min-height="38"
-                                                >
+                                                <v-list-item value="action" v-for="list in tableActionData"
+                                                    :key="list.listtitle" hide-details min-height="38"
+                                                    @click="handleAction(list.listtitle, item._id, item)">
                                                     <v-list-item-title>
                                                         <v-avatar size="20" class="mr-2">
                                                             <component :is="list.icon" stroke-width="2" size="20" />
@@ -98,4 +125,31 @@ export default {
             </perfect-scrollbar>
         </v-card-item>
     </v-card>
+
+    <v-dialog v-model="dialog" max-width="600px">
+        <v-card>
+            <v-card-title class="headline">Edit Mood Log</v-card-title>
+            <v-card-text>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Mood</v-label>
+                    <v-select :items="moodOptions" v-model="currentLog.mood" item-text="text" item-value="value"
+                        variant="outlined" density="compact" hide-details color="secondary"></v-select>
+                </v-col>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Date</v-label>
+                    <v-date-picker v-model="currentLog.date" variant="outlined" density="compact"
+                        color="secondary"></v-date-picker>
+                </v-col>
+                <v-col cols="12">
+                    <v-label class="font-weight-semibold mb-1">Notes</v-label>
+                    <v-text-field v-model="currentLog.notes" variant="outlined" density="compact" color="secondary"
+                        type="number" min="0" max="10" placeholder="Write about your feelings" />
+                </v-col>
+            </v-card-text>
+            <v-card-actions>
+                <v-btn @click="closeDialog">Cancel</v-btn>
+                <v-btn color="secondary" @click="saveEditedLog">Save</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-dialog>
 </template>
