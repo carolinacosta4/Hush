@@ -21,6 +21,7 @@ type tableAction = {
 };
 
 type SleepLog = {
+    _id: string;
     date: string;
     bedTime: string;
     wakeTime: string;
@@ -28,6 +29,7 @@ type SleepLog = {
 };
 
 type MoodLog = {
+    _id: string;
     date: string;
     mood: string;
 };

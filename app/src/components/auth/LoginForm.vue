@@ -8,13 +8,18 @@ export default {
             password: '',
             checkbox: true,
             usersStore: useUsersStore(),
+            error: ''
         }
     },
     methods: {
         async submit() {
-            await this.usersStore.login(this.username, this.password)
-            if (this.usersStore.getToken != null) {
-                this.$router.push({ name: "Dashboard" })
+            try {
+                await this.usersStore.login(this.username, this.password)
+                if (this.usersStore.getToken != null) {
+                    this.$router.push({ name: "Dashboard" })
+                }
+            } catch (error: any) {
+                this.error = error
             }
         }
     }
@@ -33,6 +38,9 @@ export default {
                 <v-label class="font-weight-semibold mb-1">Password</v-label>
                 <v-text-field variant="outlined" v-model="password" density="compact" type="password" hide-details
                     color="secondary"></v-text-field>
+            </v-col>
+            <v-col cols="12" class="pt-0">
+                <v-alert v-if="error" type="error" dense elevation="0">{{ error }}</v-alert>
             </v-col>
             <v-col cols="12" class="pt-0">
                 <div class="d-flex flex-wrap align-center">

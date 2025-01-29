@@ -27,12 +27,12 @@ const userResolver = {
       }
     },
     listUsers: async () => await User.find(),
-    findUserById: async (_, { id }) => {   
+    findUserById: async (_, { id }) => {
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
-    
+
       const user = await User.findById(id).exec();
       if (!user) throw new Error("User not found.");
-    
+
       return user;
     },
   },
@@ -46,6 +46,9 @@ const userResolver = {
 
       const userFound = await User.findOne({ email: input.email });
       if (userFound) throw new Error("Email in use");
+
+      const usernameFound = await User.findOne({ username: input.username });
+      if (usernameFound) throw new Error("Username in use");
 
       const user = new User({
         username: input.username,
@@ -108,6 +111,14 @@ const userResolver = {
         if (!isMatch) throw new Error("Old password is incorrect.");
       }
 
+      const userEmail = await User.findOne({ email: input.email });
+      if (userEmail && userEmail.id != id)
+        throw new Error("Email already in use.");
+
+      const userUsername = await User.findOne({ username: input.username });
+      if (userUsername && userUsername.id != id)
+        throw new Error("Username already in use.");
+
       await User.findByIdAndUpdate(id, {
         username: input.username != null ? input.username : user.username,
         email: input.email != null ? input.email : user.email,
@@ -152,14 +163,14 @@ const sleepLogsResolver = {
       const logs = await sleepLogs.find({ userId: id });
       if (!logs) throw new Error("Logs not found.");
 
-      const logsWithFormattedDates = logs.map(log => ({
+      const logsWithFormattedDates = logs.map((log) => ({
         ...log.toObject(),
         date: new Date(log.date).toISOString(),
       }));
-    
+
       return logsWithFormattedDates;
     },
-    createSleepLogs: async (_, { id, input }, contextValue) => {
+    createSleepLogs: async (_, { input }, contextValue) => {
       if (!contextValue.user) {
         throw new GraphQLError("User is not authenticated", {
           extensions: {
@@ -368,15 +379,11 @@ const moodLogsResolver = {
 
       const logs = await MoodLog.find({ userId: idUser });
 
-      if (!logs || logs.length === 0) {
-        throw new Error("No mood logs found for the given user.");
-      }
-
-      const logsWithFormattedDates = logs.map(log => ({
+      const logsWithFormattedDates = logs.map((log) => ({
         ...log.toObject(),
         date: new Date(log.date).toISOString(),
       }));
-    
+
       return logsWithFormattedDates;
     },
   },

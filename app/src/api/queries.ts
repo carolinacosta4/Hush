@@ -11,9 +11,9 @@ export const LOGIN_USER = gql`
 `;
 
 export const CREATE_USER = gql`
-    mutation CreateUser($input: UserInput!) {
+    mutation CreateUser($input: UserCreateInput!) {
         createUser(input: $input) {
-            id
+            _id
             username
             email
         }
@@ -59,9 +59,9 @@ export const LIST_USER_SLEEP_LOGS = gql`
 `;
 
 export const CREATE_SLEEP_LOG = gql`
-    mutation CreateSleepLog($id: ID!, $input: SleepLogInput!) {
-        createSleepLogs(id: $id, input: $input) {
-            id
+    mutation CreateSleepLog($input: SleepLogsCreateInput!) {
+        createSleepLogs(input: $input) {
+            _id
             date
             bedTime
             wakeTime
@@ -71,9 +71,9 @@ export const CREATE_SLEEP_LOG = gql`
 `;
 
 export const UPDATE_SLEEP_LOG = gql`
-    mutation UpdateSleepLog($id: ID!, $input: SleepLogInput!) {
+    mutation UpdateSleepLog($id: ID!, $input: SleepLogsEditInput!) {
         updateSleepLogs(id: $id, input: $input) {
-            id
+            _id
             date
             bedTime
             wakeTime
@@ -180,15 +180,15 @@ export const listUserSleepLogs = async (id: string) => {
     return data.listUserSleepLogs;
 };
 
-export const createSleepLog = async (id: string, input: { date: string; bedTime: string; wakeTime: string; sleepQuality: string }) => {
+export const createSleepLog = async (input: { date: string; bedTime: string; wakeTime: string; sleepQuality: number }) => {
     const { data } = await apolloClient.mutate({
         mutation: CREATE_SLEEP_LOG,
-        variables: { id, input }
+        variables: { input }
     });
     return data.createSleepLogs;
 };
 
-export const updateSleepLog = async (id: string, input: { date?: string; bedTime?: string; wakeTime?: string; sleepQuality?: string }) => {
+export const updateSleepLog = async (id: string, input: { date?: string; bedTime?: string; wakeTime?: string; sleepQuality?: number }) => {
     const { data } = await apolloClient.mutate({
         mutation: UPDATE_SLEEP_LOG,
         variables: { id, input }
@@ -204,7 +204,7 @@ export const removeSleepLog = async (id: string) => {
     return data.removeSleepLog;
 };
 
-export const listUsersMoodLogs = async (idUser: string) => {   
+export const listUsersMoodLogs = async (idUser: string) => {
     const { data } = await apolloClient.query({
         query: LIST_USER_MOOD_LOGS,
         variables: { idUser }

@@ -8,7 +8,7 @@ const schema = new mongoose.Schema(
       required: true,
     },
     date: { type: Date, required: true },
-    bedtime: { type: String, required: true },
+    bedTime: { type: String, required: true },
     wakeTime: { type: String, required: true },
     sleepQuality: { type: String, required: true },
   },

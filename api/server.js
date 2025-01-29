@@ -39,7 +39,7 @@ const startServer = async () => {
         const token = req.headers.authorization || "";
         let payload = null;
         try {
-          payload = jwt.verify(token, process.env.SECRET);
+          payload = jwt.verify(token, process.env.SECRET);          
           return { loggedIn: true, user: payload };
         } catch (error) {
           return { loggedIn: false, user: null };
