@@ -8,6 +8,7 @@ import MoodLog from "../models/moodlogs.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dbConfig from "../config/db.config.js";
+import Achievement from "../models/achievements.model.js";
 
 const pubsub = new PubSub();
 
@@ -30,7 +31,7 @@ const userResolver = {
     findUserById: async (_, { id }) => {
       if (!mongoose.isValidObjectId(id)) throw new Error("Invalid ID.");
 
-      const user = await User.findById(id).exec();
+      const user = await User.findById(id).populate("achievements").exec();
       if (!user) throw new Error("User not found.");
 
       return user;
@@ -57,6 +58,7 @@ const userResolver = {
         profilePicture:
           "https://res.cloudinary.com/ditdnslga/image/upload/v1735949597/ipmihkt7ebpogdtnlw4b.png",
         cloudinaryId: 0,
+        achievements: [],
       });
 
       const newUser = await user.save();
@@ -84,6 +86,39 @@ const userResolver = {
         accessToken: token,
         userID: user._id,
       };
+    },
+    unlockAchievement: async (_, { userId, achievementId }, contextValue) => {
+      if (!contextValue.user) {
+        throw new GraphQLError("User is not authenticated", {
+          extensions: {
+            code: "UNAUTHORIZED",
+            http: { status: 401 },
+          },
+        });
+      }
+
+      if (
+        !mongoose.isValidObjectId(userId) ||
+        !mongoose.isValidObjectId(achievementId)
+      )
+        throw new Error("Invalid ID.");
+
+      const user = await User.findById(userId);
+      if (!user) throw new Error("User not found.");
+
+      const achievement = await Achievement.findById(achievementId);
+      if (!achievement) throw new Error("Achievement not found.");
+
+      if (!user.achievements.includes(achievementId)) {
+        user.achievements.push(achievementId);
+        await user.save();
+      }
+
+      const updatedUser = await User.findById(userId)
+        .populate("achievements")
+        .exec();
+
+      return updatedUser;
     },
     updateUser: async (_, { id, input }, contextValue) => {
       if (!contextValue.user) {
@@ -211,7 +246,7 @@ const sleepLogsResolver = {
           $gte: new Date(new Date(input.date).setHours(0, 0, 0, 0)),
           $lt: new Date(new Date(input.date).setHours(24, 0, 0, 0)),
         },
-      });      
+      });
 
       if (existingLog) throw new Error("A log with this date already exists.");
 

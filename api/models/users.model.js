@@ -7,6 +7,7 @@ const schema = new mongoose.Schema(
     password: { type: String, required: true },
     profilePicture: { type: String },
     cloudinaryId: { type: String },
+    achievements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' }]
   },
   {
     collection: "user",

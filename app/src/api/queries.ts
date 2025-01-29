@@ -28,6 +28,11 @@ export const FIND_USER_BY_ID = gql`
             email
             profilePicture
             cloudinaryId
+            achievements {
+                _id
+                name
+                image
+            }
         }
     }
 `;
@@ -145,6 +150,23 @@ export const LIST_USER_MOOD_LOGS = gql`
     }
 `;
 
+export const UNLOCK_ACHIEVEMENT = gql`
+    mutation UnlockAchievement($userId: ID!, $achievementId: ID!) {
+        unlockAchievement(userId: $userId, achievementId: $achievementId) {
+            _id
+            username
+            email
+            profilePicture
+            cloudinaryId
+            achievements {
+                _id
+                name
+                image
+            }
+        }
+    }
+`;
+
 export const login = async (username: string, password: string) => {
     const { data } = await apolloClient.mutate({
         mutation: LOGIN_USER,
@@ -226,4 +248,12 @@ export const listUsersMoodLogs = async (idUser: string) => {
         variables: { idUser }
     });
     return data.listUsersMoodLogs;
+};
+
+export const unlockAchievement = async (userId: string, achievementId: string) => {
+    const { data } = await apolloClient.mutate({
+        mutation: UNLOCK_ACHIEVEMENT,
+        variables: { userId, achievementId }
+    });
+    return data.unlockAchievement;
 };

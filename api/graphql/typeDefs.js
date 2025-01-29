@@ -6,6 +6,13 @@ export const typeDefs = `
         password: String!
         profilePicture: String!
         cloudinaryId: String!
+        achievements: [Achievement!]
+      }
+
+      type Achievement {
+        _id: ID!
+        name: String!
+        image: String!
       }
 
       type SleepLog {
@@ -120,6 +127,7 @@ export const typeDefs = `
         updateUser(id: ID!, input: UserInput!): User
         removeUser(id: ID!): String
         loginUser(input: UserLoginInput!): LoginResponse
+        unlockAchievement(userId: ID!, achievementId: ID!): User
         listUserSleepLogs(id: ID!): [SleepLog]
         createSleepLogs(input: SleepLogsCreateInput): SleepLog
         updateSleepLogs(id: ID!, input: SleepLogsEditInput): SleepLog

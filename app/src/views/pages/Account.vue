@@ -1,5 +1,6 @@
 <script lang="ts">
 import { useUsersStore } from '@/stores/users';
+import type { Achievement } from '@/types/dashboard';
 
 export default {
     data() {
@@ -12,7 +13,7 @@ export default {
         loggedUser() {
             return this.usersStore.getUserLogged;
         },
-        loggedUserInfo() {
+        loggedUserInfo(): { username: string, email: string, profilePicture: string, achievements: Achievement[] } {
             return this.usersStore.getUserLoggedInfo
         },
 
@@ -21,6 +22,7 @@ export default {
                 username: this.loggedUserInfo.username,
                 email: this.loggedUserInfo.email,
                 profilePicture: this.loggedUserInfo.profilePicture,
+                achievements: this.loggedUserInfo.achievements
             }
         }
     },
@@ -59,7 +61,6 @@ export default {
         <v-card-item>
             <div class="px-6">
                 <v-card-title class="text-h5 mb-1">User Profile</v-card-title>
-                <v-card-subtitle class="text-body-1">Your personal details and settings</v-card-subtitle>
             </div>
 
             <v-divider class="my-4"></v-divider>
@@ -118,6 +119,32 @@ export default {
                     <v-btn class="mt-4" color="red" @click="deleteUser">
                         Delete account
                     </v-btn>
+                </v-col>
+            </v-row>
+        </v-card-item>
+    </v-card>
+
+    <v-card elevation="10" style="margin-top: 20px;">
+        <v-card-item>
+            <div class="px-6">
+                <v-card-title class="text-h5 mb-1">Achievements</v-card-title>
+            </div>
+
+            <v-divider class="my-4"></v-divider>
+
+            <v-row class="px-6">
+                <v-col cols="12" sm="8">
+                    <div class="user-info">
+                        <v-row>
+                            <v-col cols="4" class="my-2" v-for="achievement in loggedUserInfo.achievements"
+                                :key="achievement._id"
+                                style="display: flex; flex-direction: column; align-items: center;">
+                                <v-img :src="achievement.image" alt="Achievement" aspect-ratio="1" width="100"
+                                    height="100" />
+                                <p style="text-align: center;">{{ achievement.name }}</p>
+                            </v-col>
+                        </v-row>
+                    </div>
                 </v-col>
             </v-row>
         </v-card-item>

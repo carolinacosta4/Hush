@@ -1,5 +1,7 @@
 <script lang="ts">
 import { useSleepLogsStore } from '@/stores/sleeplogs';
+import { useUsersStore } from '@/stores/users';
+import type { Achievement, SleepLog } from '@/types/dashboard';
 
 export default {
     data() {
@@ -9,8 +11,18 @@ export default {
             sleepQuality: 0,
             date: new Date(),
             sleepLogStore: useSleepLogsStore(),
+            usersStore: useUsersStore(),
             error: ''
         };
+    },
+
+    computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+        loggedUserInfo(): { username: string, email: string, profilePicture: string, achievements: Achievement[], sleepLogs: SleepLog[]; } {
+            return this.usersStore.getUserLoggedInfo
+        },
     },
 
     methods: {
@@ -26,6 +38,25 @@ export default {
                     wakeTime: this.wakeTime,
                     sleepQuality: this.sleepQuality,
                 });
+                if (this.loggedUser) {
+                    const lastThreeLogs = [...this.loggedUserInfo.sleepLogs.slice(-2), { bedTime: this.bedTime, wakeTime: this.wakeTime }];
+
+                    const allHaveSevenHours = lastThreeLogs.every(log => {
+                        const sleepDuration = this.calculateSleepDuration(log);
+                        return sleepDuration >= 7;
+                    });
+
+                    if (allHaveSevenHours) {
+                        await this.usersStore.unlockAchievement(this.loggedUser, '679a4b87398f9f488b106083');
+                    }
+
+                    await this.usersStore.unlockAchievement(this.loggedUser, '679a4be7398f9f488b106085');
+                    const hoursDay = this.calculateSleepDuration({ bedTime: this.bedTime, wakeTime: this.wakeTime });
+
+                    if (hoursDay >= 8) {
+                        await this.usersStore.unlockAchievement(this.loggedUser, '679a4c06398f9f488b106086');
+                    }
+                }
                 this.bedTime = '';
                 this.wakeTime = '';
                 this.sleepQuality = 0;
@@ -33,6 +64,28 @@ export default {
                 this.$router.push('/');
             } catch (error: any) {
                 this.error = error
+            }
+        },
+
+        calculateSleepDuration(log: { bedTime: string; wakeTime: string; }) {
+            const sleepTime = log.bedTime;
+            const wakeTime = log.wakeTime;
+
+            const sleepDate = new Date(`1970-01-01T${sleepTime}:00`);
+            const wakeDate = new Date(`1970-01-01T${wakeTime}:00`);
+
+            if (wakeDate < sleepDate) {
+                wakeDate.setDate(wakeDate.getDate() + 1);
+            }
+
+            const timeAsleepMs = wakeDate.getTime() - sleepDate.getTime();
+            const hours = Math.floor(timeAsleepMs / (1000 * 60 * 60));
+            return hours;
+        },
+
+        async created() {
+            if (this.loggedUser) {
+                await this.usersStore.fetchUserLogged(this.loggedUser);
             }
         },
     },
@@ -61,8 +114,8 @@ export default {
                 min="0" max="10" placeholder="Rate from 0 to 10" />
         </v-col>
         <v-col cols="12" class="pt-0">
-                <v-alert v-if="error" type="error" dense elevation="0">{{ error }}</v-alert>
-            </v-col>
+            <v-alert v-if="error" type="error" dense elevation="0">{{ error }}</v-alert>
+        </v-col>
         <v-col cols="12" class="pt-0">
             <v-btn rounded="md" color="secondary" size="large" block flat type="submit">Create</v-btn>
         </v-col>
