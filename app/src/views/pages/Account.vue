@@ -22,7 +22,6 @@ export default {
                 username: this.loggedUserInfo.username,
                 email: this.loggedUserInfo.email,
                 profilePicture: this.loggedUserInfo.profilePicture,
-                achievements: this.loggedUserInfo.achievements
             }
         }
     },
