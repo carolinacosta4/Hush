@@ -4,8 +4,8 @@ export const typeDefs = `
         username: String!
         email: String!
         password: String!
-        sleepLogs: [SleepLog]
-        moodLogs: [MoodLog]
+        profilePicture: String!
+        cloudinaryId: String!
       }
 
       type SleepLog {
@@ -26,7 +26,7 @@ export const typeDefs = `
       input UserInput{
         email: String
         username: String
-        password: String
+        profilePicture: String
       }
 
       input SleepLogsCreateInput{
@@ -133,6 +133,7 @@ export const typeDefs = `
       }
 
       type Subscription {
+        updatedUser: User
         newSleepLogAdded: SleepLog
         sleepLogUpdated: SleepLog
         sleepLogDeleted: String

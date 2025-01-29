@@ -9,21 +9,31 @@ export default {
             sleepQuality: 0,
             date: new Date(),
             sleepLogStore: useSleepLogsStore(),
+            error: ''
         };
     },
 
     methods: {
-        submitForm() {
+        async submitForm() {
             if (this.bedTime === '' || this.wakeTime === '' || this.sleepQuality === 0) {
-                alert('Please fill all fields');
+                this.error = 'Please fill all fields';
                 return;
             }
-            this.sleepLogStore.createLog({
-                date: this.date.toISOString(),
-                bedTime: this.bedTime,
-                wakeTime: this.wakeTime,
-                sleepQuality: this.sleepQuality,
-            });
+            try {
+                await this.sleepLogStore.createLog({
+                    date: this.date.toISOString(),
+                    bedTime: this.bedTime,
+                    wakeTime: this.wakeTime,
+                    sleepQuality: this.sleepQuality,
+                });
+                this.bedTime = '';
+                this.wakeTime = '';
+                this.sleepQuality = 0;
+                this.date = new Date();
+                this.$router.push('/');
+            } catch (error: any) {
+                this.error = error
+            }
         },
     },
 };
@@ -50,6 +60,9 @@ export default {
             <v-text-field v-model="sleepQuality" variant="outlined" density="compact" color="secondary" type="number"
                 min="0" max="10" placeholder="Rate from 0 to 10" />
         </v-col>
+        <v-col cols="12" class="pt-0">
+                <v-alert v-if="error" type="error" dense elevation="0">{{ error }}</v-alert>
+            </v-col>
         <v-col cols="12" class="pt-0">
             <v-btn rounded="md" color="secondary" size="large" block flat type="submit">Create</v-btn>
         </v-col>

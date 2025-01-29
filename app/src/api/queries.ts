@@ -26,6 +26,8 @@ export const FIND_USER_BY_ID = gql`
             _id
             username
             email
+            profilePicture
+            cloudinaryId
         }
     }
 `;
@@ -33,9 +35,10 @@ export const FIND_USER_BY_ID = gql`
 export const UPDATE_USER = gql`
     mutation UpdateUser($id: ID!, $input: UserInput!) {
         updateUser(id: $id, input: $input) {
-            id
+            _id
             username
             email
+            profilePicture
         }
     }
 `;
@@ -88,10 +91,23 @@ export const REMOVE_SLEEP_LOG = gql`
     }
 `;
 
+export const USER_UPDATED = gql`
+    subscription {
+        updatedUser {
+            _id
+            username
+            email
+            password
+            profilePicture
+            cloudinaryId
+        }
+    }
+`;
+
 export const NEW_SLEEP_LOG_ADDED = gql`
     subscription {
         newSleepLogAdded {
-            id
+            _id
             date
             bedTime
             wakeTime
@@ -103,7 +119,7 @@ export const NEW_SLEEP_LOG_ADDED = gql`
 export const SLEEP_LOG_UPDATED = gql`
     subscription {
         sleepLogUpdated {
-            id
+            _id
             date
             bedTime
             wakeTime
@@ -156,7 +172,7 @@ export const findUserById = async (id: string) => {
     return data.findUserById;
 };
 
-export const updateUser = async (id: string, input: { username?: string; email?: string; password?: string }) => {
+export const updateUser = async (id: string, input: { username?: string; email?: string; profilePicture?: string }) => {
     const { data } = await apolloClient.mutate({
         mutation: UPDATE_USER,
         variables: { id, input }

@@ -54,6 +54,9 @@ const userResolver = {
         username: input.username,
         email: input.email,
         password: bcrypt.hashSync(input.password, 10),
+        profilePicture:
+          "https://res.cloudinary.com/ditdnslga/image/upload/v1735949597/ipmihkt7ebpogdtnlw4b.png",
+        cloudinaryId: 0,
       });
 
       const newUser = await user.save();
@@ -122,12 +125,18 @@ const userResolver = {
       await User.findByIdAndUpdate(id, {
         username: input.username != null ? input.username : user.username,
         email: input.email != null ? input.email : user.email,
-        password: input.password
-          ? bcrypt.hashSync(input.password, 10)
-          : user.password,
+        profilePicture:
+          input.profilePicture != null
+            ? input.profilePicture
+            : user.profilePicture,
       });
 
       const updatedUser = await User.findById(id);
+
+      pubsub.publish("USER_UPDATED", {
+        updatedUser: updatedUser,
+      });
+
       return updatedUser;
     },
     removeUser: async (_, { id }, contextValue) => {
@@ -151,6 +160,11 @@ const userResolver = {
       await User.findByIdAndDelete(id);
 
       return "User deleted successfully.";
+    },
+  },
+  Subscription: {
+    updatedUser: {
+      subscribe: () => pubsub.asyncIterableIterator("USER_UPDATED"),
     },
   },
 };
@@ -190,6 +204,16 @@ const sleepLogsResolver = {
         !input.sleepQuality
       )
         throw new Error("Fields missing");
+
+      const existingLog = await sleepLogs.findOne({
+        userId: contextValue.user.id,
+        date: {
+          $gte: new Date(new Date(input.date).setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date(input.date).setHours(24, 0, 0, 0)),
+        },
+      });      
+
+      if (existingLog) throw new Error("A log with this date already exists.");
 
       const newSleepLog = new sleepLogs({
         userId: contextValue.user.id,
