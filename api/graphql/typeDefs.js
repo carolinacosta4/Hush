@@ -89,8 +89,8 @@ export const typeDefs = `
       }
       
       type MoodLog {
-        _id: ID!
-        userId: ID!
+        _id: ID
+        userId: ID
         date: String!
         mood: Moods!
         notes: String
@@ -98,9 +98,9 @@ export const typeDefs = `
 
       input MoodLogInput {
         _id: ID
-        userId: ID!
-        mood: Moods!
-        notes: String,
+        mood: Moods
+        date: String
+        notes: String
       }
 
       input MoodLogEditInput {
@@ -115,6 +115,7 @@ export const typeDefs = `
         listAllTips: [Tip]
         listUsersMoodLogs(idUser: String!): [MoodLog]
         findUserById(id: ID!): User
+        getMoods: [String] 
       }
 
       type LoginResponse {
@@ -148,8 +149,17 @@ export const typeDefs = `
         newTipAdded: Tip
         tipUpdated: Tip
         tipDeleted: String
-        newModdLogAdded: MoodLog
+        newMoodLogAdded: MoodLog
         moodLogUpdated: MoodLog
         moodLogDeleted: String
       }
+
+      query GetEnumValues {
+      __type(name: "Moods") {
+        enumValues {
+          name
+        }
+      }
+}
+
 `;

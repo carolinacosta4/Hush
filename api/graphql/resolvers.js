@@ -447,7 +447,7 @@ const moodLogsResolver = {
     },
   },
   Mutation: {
-    createMoodLog: async (_, { id, input }, contextValue) => {
+    createMoodLog: async (_, { input }, contextValue) => {
       if (!contextValue.user) {
         throw new GraphQLError("User is not authenticated", {
           extensions: {
@@ -460,12 +460,10 @@ const moodLogsResolver = {
       if (Object.values(input).length == 0)
         throw new Error("You need to provide the body with the request.");
 
-      let t = new Date();
-      let today = t.toISOString();
 
       const newLog = new MoodLog({
-        userId: input.userId,
-        date: today,
+        userId: contextValue.user.id,
+        date: input.date,
         mood: input.mood,
         notes: input.notes,
       });
@@ -505,7 +503,7 @@ const moodLogsResolver = {
       });
 
       const updatedLog = await MoodLog.findById(id);
-      pubsub.publish("MOOD_LOG_UPDATED", { sleepLogUpdated: updatedLog });
+      pubsub.publish("MOOD_LOG_UPDATED", { moodLogUpdated: updatedLog });
 
       return updatedLog;
     },
@@ -531,13 +529,13 @@ const moodLogsResolver = {
     },
   },
   Subscription: {
-    newSleepLogAdded: {
+    newMoodLogAdded: {
       subscribe: () => pubsub.asyncIterableIterator(["NEW_MOOD_LOG_ADDED"]),
     },
-    sleepLogUpdated: {
+    moodLogUpdated: {
       subscribe: () => pubsub.asyncIterableIterator(["MOOD_LOG_UPDATED"]),
     },
-    sleepLogDeleted: {
+    moodLogDeleted: {
       subscribe: () => pubsub.asyncIterableIterator(["MOOD_LOG_DELETED"]),
     },
   },

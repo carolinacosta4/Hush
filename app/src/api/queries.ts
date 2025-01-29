@@ -167,6 +167,72 @@ export const UNLOCK_ACHIEVEMENT = gql`
     }
 `;
 
+export const CREATE_MOOD_LOG = gql`
+    mutation CreateMoodLog($input: MoodLogInput!) {
+        createMoodLog(input: $input) {
+            _id
+            date
+            mood
+            notes
+            date
+        }
+    }
+`;
+
+export const UPDATE_MOOD_LOG = gql`
+    mutation UpdateMoodLog($id: ID!, $input: MoodLogEditInput!) {
+        updateMoodLog(id: $id, input: $input) {
+            date
+            mood
+            notes
+        }
+    }
+`;
+
+export const REMOVE_MOOD_LOG = gql`
+    mutation RemoveMoodLog($id: ID!) {
+        removeMoodLog(id: $id)
+    }
+`;
+
+export const NEW_MOOD_LOG_ADDED = gql`
+    subscription {
+        newMoodLogAdded {
+            userId
+            date
+            mood
+            notes
+        }
+    }
+`;
+
+export const MOOD_LOG_UPDATED = gql`
+    subscription {
+        moodLogUpdated {
+            userId
+            date
+            mood
+            notes
+        }
+    }
+`;
+
+export const MOOD_LOG_DELETED = gql`
+    subscription {
+        moodLogDeleted
+    }
+`;
+
+const GET_MOOD_ENUM = gql`
+    query GetEnumValues {
+        __type(name: "Moods") {
+            enumValues {
+                name
+            }
+        }
+    }
+`;
+
 export const login = async (username: string, password: string) => {
     const { data } = await apolloClient.mutate({
         mutation: LOGIN_USER,
@@ -257,3 +323,44 @@ export const unlockAchievement = async (userId: string, achievementId: string) =
     });
     return data.unlockAchievement;
 };
+
+export const createMoodLog = async (input: { _id: string; date: string; mood: string; notes: string }) => {
+    const { data } = await apolloClient.mutate({
+        mutation: CREATE_MOOD_LOG,
+        variables: { input }
+    });
+    return data.createMoodLog;
+};
+
+export const updateMoodLog = async (id: string, input: { date?: string; mood?: string; notes?: string }) => {
+    const { data } = await apolloClient.mutate({
+        mutation: UPDATE_MOOD_LOG,
+        variables: { id, input }
+    });
+    return data.updateMoodLog;
+};
+
+export const removeMoodLog = async (id: string) => {
+    const { data } = await apolloClient.mutate({
+        mutation: REMOVE_MOOD_LOG,
+        variables: { id }
+    });
+    return data.removeMoodLog;
+};
+
+export const getMoodsValue = async () => {
+    const { data } = await apolloClient.query({
+        query: GET_MOOD_ENUM
+    });
+
+    if (!data || !data.__type || !data.__type.enumValues) {
+        console.error("Erro ao buscar enum Moods:", data);
+        return [];
+    }
+    let list = data.__type.enumValues.map((mood:any) => mood.name);
+    console.log(list);
+    
+    
+    return list;
+};
+

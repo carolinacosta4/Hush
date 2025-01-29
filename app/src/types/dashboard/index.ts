@@ -32,6 +32,7 @@ type MoodLog = {
     _id: string;
     date: string;
     mood: string;
+    notes: string;
 };
 
 type Achievement = {
