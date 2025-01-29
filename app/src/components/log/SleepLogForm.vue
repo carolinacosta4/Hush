@@ -40,6 +40,7 @@ export default {
                 });
                 if (this.loggedUser) {
                     const lastThreeLogs = [...this.loggedUserInfo.sleepLogs.slice(-2), { bedTime: this.bedTime, wakeTime: this.wakeTime }];
+                    if (lastThreeLogs.length === 3) {
 
                     const allHaveSevenHours = lastThreeLogs.every(log => {
                         const sleepDuration = this.calculateSleepDuration(log);
@@ -48,7 +49,7 @@ export default {
 
                     if (allHaveSevenHours) {
                         await this.usersStore.unlockAchievement(this.loggedUser, '679a4b87398f9f488b106083');
-                    }
+                    }}
 
                     await this.usersStore.unlockAchievement(this.loggedUser, '679a4be7398f9f488b106085');
                     const hoursDay = this.calculateSleepDuration({ bedTime: this.bedTime, wakeTime: this.wakeTime });

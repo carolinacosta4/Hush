@@ -48,7 +48,6 @@ export default {
                 const difference = ((this.todaySleepLog.sleepQuality - this.yesterdaySleepLog.sleepQuality) / this.yesterdaySleepLog.sleepQuality) * 100;
                 return difference.toFixed(2);
             }
-            return 'N/A';
         },
         timeAsleep() {
             if (this.todaySleepLog) {
@@ -105,7 +104,7 @@ export default {
                         <p class="text-sm text-light mb-0">{{ todaySleepLog.sleepQuality }}/10</p>
                     </v-col>
                 </v-row>
-                <span
+                <span v-if="dailyDifference"
                     class="text-12 rounded-pill px-2 py-1 lh-normal text-muted light-chip border border-muted font-weight-medium">{{
                         dailyDifference }}%
                     yesterday</span>
