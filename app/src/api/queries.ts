@@ -174,7 +174,6 @@ export const CREATE_MOOD_LOG = gql`
             date
             mood
             notes
-            date
         }
     }
 `;
@@ -198,6 +197,7 @@ export const REMOVE_MOOD_LOG = gql`
 export const NEW_MOOD_LOG_ADDED = gql`
     subscription {
         newMoodLogAdded {
+            _id
             userId
             date
             mood
@@ -348,7 +348,7 @@ export const unlockAchievement = async (userId: string, achievementId: string) =
     return data.unlockAchievement;
 };
 
-export const createMoodLog = async (input: { _id: string; date: string; mood: string; notes: string }) => {
+export const createMoodLog = async (input: { date: string; mood: string; notes: string }) => {
     const { data } = await apolloClient.mutate({
         mutation: CREATE_MOOD_LOG,
         variables: { input }

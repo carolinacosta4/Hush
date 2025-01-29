@@ -6,9 +6,8 @@ export const useMoodLogsStore = defineStore('moodLog', {
         moodOptions: [] as string[],
     }),
     actions: {
-        async createLog(logInfo: { _id: string; date: string; mood: string; notes: string }) {
+        async createLog(logInfo: { date: string; mood: string; notes: string }) {
             await createMoodLog(logInfo);
-            
         },
 
         async editLog(id: string, logInfo: { date?: string; mood?: string; notes?: string }) {

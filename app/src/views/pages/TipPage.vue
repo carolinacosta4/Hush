@@ -1,8 +1,4 @@
 <script lang="ts">
-import { useRoute } from 'vue-router';
-import { ref, onMounted } from 'vue';
-import { BlogCardData } from '@/data/Dashboard';
-import type { BlogCards } from '@/types/dashboard/index';
 import { useTipsStore } from '@/stores/tips';
 import { format } from 'date-fns';
 
@@ -22,17 +18,11 @@ export default {
         tip() {
             return this.tipsStore.getTip 
         },
-        formatDate() {
-            return (date: string | number) => {
-                console.log('Received date:', date);
-                const dateObj = new Date(date);
-                console.log('Date object:', dateObj); 
-
-                if (isNaN(dateObj.getTime())) {
-                    return 'Data inválida';
-                }
-                return format(dateObj, 'MMMM dd, yyyy');
-            };
+        formattedDate() {
+            if (this.tip.publishDate) {
+                    return format(new Date(Number(this.tip.publishDate)), 'dd/MM/yyyy')
+            }
+            return '';
         }
     },
 };
@@ -45,7 +35,7 @@ export default {
                 {{ tip.title }}
             </v-card-title>
             <v-card-text class="mt-4">
-                {{ formatDate(tip.publishDate) }} 
+                {{ formattedDate }} 
             </v-card-text>
             <v-card-text class="mt-4">
                 {{ tip.description }}

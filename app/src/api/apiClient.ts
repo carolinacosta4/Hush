@@ -7,6 +7,7 @@ const getToken = () => localStorage.getItem('authToken');
 
 const httpLink = new HttpLink({
     uri: 'http://localhost:3000/graphql'
+    // uri: 'https://hush-cwy0.onrender.com/graphql'
 });
 
 const authLink = new ApolloLink((operation, forward) => {
@@ -24,6 +25,7 @@ const authLink = new ApolloLink((operation, forward) => {
 const wsLink = new GraphQLWsLink(
     createClient({
         url: 'ws://localhost:3000/graphql',
+        // url: 'wss://hush-cwy0.onrender.com/graphql',
         connectionParams: () => {
             const token = getToken();
             return token ? { Authorization: `Bearer ${token}` } : {};

@@ -22,7 +22,6 @@ export default {
                 username: this.loggedUserInfo.username,
                 email: this.loggedUserInfo.email,
                 profilePicture: this.loggedUserInfo.profilePicture,
-                achievements: this.loggedUserInfo.achievements
             }
         }
     },
@@ -132,11 +131,11 @@ export default {
 
             <v-divider class="my-4"></v-divider>
 
-            <v-row class="px-6">
-                <v-col cols="12" sm="8">
+            <v-row>
+                <v-col cols="12" sm="12">
                     <div class="user-info">
                         <v-row>
-                            <v-col cols="4" class="my-2" v-for="achievement in loggedUserInfo.achievements"
+                            <v-col cols="3" class="my-2" v-for="achievement in loggedUserInfo.achievements"
                                 :key="achievement._id"
                                 style="display: flex; flex-direction: column; align-items: center;">
                                 <v-img :src="achievement.image" alt="Achievement" aspect-ratio="1" width="100"
