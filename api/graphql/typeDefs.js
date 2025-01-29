@@ -4,8 +4,15 @@ export const typeDefs = `
         username: String!
         email: String!
         password: String!
-        sleepLogs: [SleepLog]
-        moodLogs: [MoodLog]
+        profilePicture: String!
+        cloudinaryId: String!
+        achievements: [Achievement!]
+      }
+
+      type Achievement {
+        _id: ID!
+        name: String!
+        image: String!
       }
 
       type SleepLog {
@@ -26,7 +33,7 @@ export const typeDefs = `
       input UserInput{
         email: String
         username: String
-        password: String
+        profilePicture: String
       }
 
       input SleepLogsCreateInput{
@@ -121,6 +128,7 @@ export const typeDefs = `
         updateUser(id: ID!, input: UserInput!): User
         removeUser(id: ID!): String
         loginUser(input: UserLoginInput!): LoginResponse
+        unlockAchievement(userId: ID!, achievementId: ID!): User
         listUserSleepLogs(id: ID!): [SleepLog]
         createSleepLogs(input: SleepLogsCreateInput): SleepLog
         updateSleepLogs(id: ID!, input: SleepLogsEditInput): SleepLog
@@ -134,6 +142,7 @@ export const typeDefs = `
       }
 
       type Subscription {
+        updatedUser: User
         newSleepLogAdded: SleepLog
         sleepLogUpdated: SleepLog
         sleepLogDeleted: String

@@ -26,6 +26,13 @@ export const FIND_USER_BY_ID = gql`
             _id
             username
             email
+            profilePicture
+            cloudinaryId
+            achievements {
+                _id
+                name
+                image
+            }
         }
     }
 `;
@@ -33,9 +40,10 @@ export const FIND_USER_BY_ID = gql`
 export const UPDATE_USER = gql`
     mutation UpdateUser($id: ID!, $input: UserInput!) {
         updateUser(id: $id, input: $input) {
-            id
+            _id
             username
             email
+            profilePicture
         }
     }
 `;
@@ -88,10 +96,23 @@ export const REMOVE_SLEEP_LOG = gql`
     }
 `;
 
+export const USER_UPDATED = gql`
+    subscription {
+        updatedUser {
+            _id
+            username
+            email
+            password
+            profilePicture
+            cloudinaryId
+        }
+    }
+`;
+
 export const NEW_SLEEP_LOG_ADDED = gql`
     subscription {
         newSleepLogAdded {
-            id
+            _id
             date
             bedTime
             wakeTime
@@ -103,7 +124,7 @@ export const NEW_SLEEP_LOG_ADDED = gql`
 export const SLEEP_LOG_UPDATED = gql`
     subscription {
         sleepLogUpdated {
-            id
+            _id
             date
             bedTime
             wakeTime
@@ -125,6 +146,23 @@ export const LIST_USER_MOOD_LOGS = gql`
             date
             mood
             notes
+        }
+    }
+`;
+
+export const UNLOCK_ACHIEVEMENT = gql`
+    mutation UnlockAchievement($userId: ID!, $achievementId: ID!) {
+        unlockAchievement(userId: $userId, achievementId: $achievementId) {
+            _id
+            username
+            email
+            profilePicture
+            cloudinaryId
+            achievements {
+                _id
+                name
+                image
+            }
         }
     }
 `;
@@ -222,7 +260,7 @@ export const findUserById = async (id: string) => {
     return data.findUserById;
 };
 
-export const updateUser = async (id: string, input: { username?: string; email?: string; password?: string }) => {
+export const updateUser = async (id: string, input: { username?: string; email?: string; profilePicture?: string }) => {
     const { data } = await apolloClient.mutate({
         mutation: UPDATE_USER,
         variables: { id, input }
@@ -276,6 +314,14 @@ export const listUsersMoodLogs = async (idUser: string) => {
         variables: { idUser }
     });
     return data.listUsersMoodLogs;
+};
+
+export const unlockAchievement = async (userId: string, achievementId: string) => {
+    const { data } = await apolloClient.mutate({
+        mutation: UNLOCK_ACHIEVEMENT,
+        variables: { userId, achievementId }
+    });
+    return data.unlockAchievement;
 };
 
 export const createMoodLog = async (input: { _id: string; date: string; mood: string; notes: string }) => {

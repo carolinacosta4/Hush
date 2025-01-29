@@ -37,12 +37,13 @@ export default {
     },
 
     methods: {
-        handleAction(name: string, id: string, item: SleepLog) {
+        async handleAction(name: string, id: string, item: SleepLog) {
             if (name === 'Edit') {               
                 this.currentLog = item 
                 this.dialog = true;
-            } else if (name === 'Delete') {
-                this.sleepLogsStore.deleteLog(id);
+            } else if (name === 'Delete' && this.loggedUser) {
+                await this.sleepLogsStore.deleteLog(id);
+                await this.usersStore.fetchUserLogged(this.loggedUser);
             }
         },
 

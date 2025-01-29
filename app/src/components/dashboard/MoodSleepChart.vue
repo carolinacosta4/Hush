@@ -5,9 +5,14 @@ import type { MoodLog, SleepLog } from '@/types/dashboard';
 
 const moodMapping: { [key: string]: number } = {
     Happy: 10,
-    Cansado: 3,
-    Neutro: 5,
-    Irritado: 0
+    Excited: 8,
+    Calm: 6,
+    Motivated: 7,
+    Relaxed: 9,
+    Stressed: 1,
+    Sad: 3,
+    Tired: 2,
+    Neutral: 5
 };
 
 export default {

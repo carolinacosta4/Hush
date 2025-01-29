@@ -35,4 +35,10 @@ type MoodLog = {
     notes: string;
 };
 
-export type { BlogCards, tableAction, SleepLog, MoodLog };
+type Achievement = {
+    _id: string;
+    name: string;
+    image: string;
+};
+
+export type { BlogCards, tableAction, SleepLog, MoodLog, Achievement };

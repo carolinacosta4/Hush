@@ -1,9 +1,18 @@
 import { defineStore } from 'pinia';
-import { login as loginUser, findUserById, listUserSleepLogs, listUsersMoodLogs, createUser, removeUser } from '@/api/queries';
+import { login as loginUser, findUserById, listUserSleepLogs, listUsersMoodLogs, createUser, removeUser, updateUser, unlockAchievement } from '@/api/queries';
 
 export const useUsersStore = defineStore('user', {
     state: () => ({
-        loggedUserInfo: { id: '', username: '', email: '', sleepLogs: [], moodLogs: [] },
+        loggedUserInfo: {
+            id: '',
+            username: '',
+            email: '',
+            sleepLogs: [],
+            moodLogs: [],
+            profilePicture: '',
+            cloudinaryId: '',
+            achievements: []
+        },
         token: localStorage.getItem('authToken') || null,
         loggedUser: localStorage.getItem('user') || null
     }),
@@ -15,16 +24,28 @@ export const useUsersStore = defineStore('user', {
     actions: {
         async fetchUserLogged(userID: string) {
             try {
-                this.loggedUserInfo = { id: '', username: '', email: '', sleepLogs: [], moodLogs: [] };
-                const responseUser = await findUserById(userID);
-                const responseSleepLog = await listUserSleepLogs(userID);               
+                this.loggedUserInfo = {
+                    id: '',
+                    username: '',
+                    email: '',
+                    sleepLogs: [],
+                    moodLogs: [],
+                    profilePicture: '',
+                    cloudinaryId: '',
+                    achievements: []
+                };
+                const responseUser = await findUserById(userID);                
+                const responseSleepLog = await listUserSleepLogs(userID);
                 const responseMoodLog = await listUsersMoodLogs(userID);
                 this.loggedUserInfo = {
                     id: responseUser._id,
                     username: responseUser.username,
                     email: responseUser.email,
+                    profilePicture: responseUser.profilePicture,
+                    cloudinaryId: responseUser.cloudinaryId,
                     sleepLogs: responseSleepLog,
-                    moodLogs: responseMoodLog
+                    moodLogs: responseMoodLog,
+                    achievements: responseUser.achievements
                 };
             } catch (error) {
                 console.error(error);
@@ -57,6 +78,14 @@ export const useUsersStore = defineStore('user', {
             this.loggedUser = null;
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
+        },
+
+        async editProfile(id: string, updatedUser: { username: string; email: string; profilePicture: string }) {
+            await updateUser(id, updatedUser);
+        },
+
+        async unlockAchievement(id: string, achievement: string) {
+            await unlockAchievement(id, achievement);
         }
     }
 });

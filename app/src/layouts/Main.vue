@@ -1,12 +1,50 @@
-<script setup lang="ts">
+<script lang="ts">
 import { ref, shallowRef } from 'vue';
 import sidebarItems from './vertical-sidebar/sidebarItem';
 import NavGroup from './vertical-sidebar/NavGroup/index.vue';
 import NavItem from './vertical-sidebar/NavItem/index.vue';
 import Logo from './logo/Logo.vue';
 import { Icon } from '@iconify/vue';
+import { useUsersStore } from '@/stores/users';
 const sidebarMenu = shallowRef(sidebarItems);
 const sDrawer = ref(true);
+
+export default {
+    components: {
+        NavGroup,
+        NavItem,
+        Logo,
+        Icon,
+    },
+
+    setup() {
+        return {
+            sidebarMenu,
+            sDrawer,
+        };
+    },
+
+    data() {
+        return {
+            usersStore: useUsersStore(),
+        }
+    },
+
+    computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+        loggedUserInfo() {
+            return this.usersStore.getUserLoggedInfo
+        },
+    },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
+    },
+};
 </script>
 
 <template>
@@ -46,7 +84,8 @@ const sDrawer = ref(true);
             <div>
                 <v-btn class="profileBtn custom-hover-primary" variant="text" icon @click="$router.push('/account')">
                     <v-avatar size="35">
-                        <img src="@/assets/images/profile/user-1.jpg" height="35" alt="user" />
+                        <v-img :src="loggedUserInfo.profilePicture" alt="Profile Picture" aspect-ratio="1"
+                            class="rounded-circle" />
                     </v-avatar>
                 </v-btn>
             </div>
