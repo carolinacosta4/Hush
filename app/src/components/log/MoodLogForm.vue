@@ -1,5 +1,8 @@
 <script lang="ts">
 import { useMoodLogsStore } from '@/stores/moodlogs';
+import {useUsersStore} from '@/stores/users';
+import type { MoodLog } from '@/types/dashboard';
+
 export default {
 
     data() {
@@ -8,26 +11,53 @@ export default {
             date: new Date(),
             notes: '',
             moodLogsStore: useMoodLogsStore(),
+            usersStore: useUsersStore(),
             moodOptions: ["Happy", "Sad", "Excited", "Tired", "Stressed", "Calm", "Motivated", "Relaxed", "Neutral"]
         };
     },
+
+    computed: {
+        loggedUser() {
+            return this.usersStore.getUserLogged;
+        },
+        loggedUserInfo(): { username: string, email: string, profilePicture: string, moodLogs: MoodLog[]; } {
+            return this.usersStore.getUserLoggedInfo
+        },
+    },
+
     methods: {
-        submitForm() {
-            console.log('Mood:', this.mood);
-            console.log('Description:', this.date);
-    
+        async submitForm() {    
             if (this.mood === '' || this.date === null) {
                 alert('Please fill all fields');
                 return;
             }
             this.moodLogsStore.createLog({
-                date: this.date,
+                date: this.date.toISOString(),
                 mood: this.mood,
                 notes: this.notes,
             });
-            console.log('aqui');
             
+            if(this.loggedUser) {
+                const lastThreeLogs = [...this.loggedUserInfo.moodLogs.slice(-2), { mood: this.mood }];
+                if (lastThreeLogs.length === 3) {
+                    const allHavePositiveMood = lastThreeLogs.every(log => {
+                        return log.mood === 'Happy' || log.mood === 'Excited' || log.mood === 'Motivated';
+                    });
+                    if (allHavePositiveMood) await this.usersStore.unlockAchievement(this.loggedUser, '679a4bc4398f9f488b106084');
+                }
+            }
+
+            this.mood = '';
+            this.notes = '';
+            this.date = new Date();
+            this.$router.push('/');
         },
+    },
+
+    async created() {
+        if (this.loggedUser) {
+            await this.usersStore.fetchUserLogged(this.loggedUser);
+        }
     },
 };
 </script>

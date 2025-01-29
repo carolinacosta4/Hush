@@ -38,12 +38,13 @@ export default {
     },
 
     methods: {
-        handleAction(name: string, id: string, item: MoodLog) {
+        async handleAction(name: string, id: string, item: MoodLog) {
             if (name === 'Edit') {
                 this.currentLog = item
                 this.dialog = true;
-            } else if (name === 'Delete') {
+            } else if (name === 'Delete' && this.loggedUser) {
                 this.moodLogsStore.deleteLog(id);
+                location.reload();
             }
         },
 
